@@ -1,0 +1,34 @@
+# Runtime / caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+server.log
+
+# OpenClaw local runtime
+.openclaw/
+.clawhub/
+
+# Python env / local state
+.env
+*.state.json
+
+# Data / generated outputs
+data/
+reports/
+obsidian/
+memory/
+kline-viewer/
+kline-viewer.backup.20260309/
+ObsidianTemplates/
+
+# Skill-generated artifacts
+skills/**/__pycache__/
+skills/**/logs/
+skills/**/reports/
+skills/.skills_store_lock.json
+skills/market-emotion/.intraday_emotion_state.json
+
+# Archives / binaries
+*.zip
