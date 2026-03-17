@@ -1,0 +1,14 @@
+{
+  "data_skills": {
+    "ths_http": {
+      "enabled": true,
+      "access_token": "72a6f6c407b2d433353cdbfa46c8571c152fa724.signs_Njc0Nzc1OTU4",
+      "base_url": "https://quantapi.51ifind.com/api/v1"
+    }
+  },
+  "ths_sdk": {
+    "username": "hss130",
+    "password": "335d9e",
+    "auto_login": true
+  }
+}

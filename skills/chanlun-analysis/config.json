@@ -1,0 +1,29 @@
+{
+  "skill": {
+    "name": "chanlun-analysis",
+    "version": "1.0.0",
+    "debug": false
+  },
+  "analysis": {
+    "include_fractals": true,
+    "include_strokes": true,
+    "include_centers": true,
+    "include_buy_points": true
+  },
+  "thresholds": {
+    "min_bars_for_stroke": 4,
+    "min_bars_for_center": 3,
+    "divergence_score_threshold": 0.8
+  },
+  "data": {
+    "input_dir": "./data/input",
+    "output_dir": "./data/output",
+    "cache_dir": "./data/cache"
+  },
+  "ths_data": {
+    "enabled": true,
+    "config_path": "/root/.openclaw/workspace/skills/ths-data-fetcher/scripts/config.json",
+    "access_token": "72a6f6c407b2d433353cdbfa46c8571c152fa724.signs_Njc0Nzc1OTU4",
+    "base_url": "https://quantapi.51ifind.com/api/v1"
+  }
+}

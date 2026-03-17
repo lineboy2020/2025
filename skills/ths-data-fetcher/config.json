@@ -1,0 +1,12 @@
+{
+  "ths_sdk": {
+    "username": "hss130",
+    "password": "335d9e"
+  },
+  "ths_http": {
+    "enabled": true,
+    "access_token": "72a6f6c407b2d433353cdbfa46c8571c152fa724.signs_Njc0Nzc1OTU4",
+    "token_expiry": "2026-03-17 22:41:01",
+    "base_url": "https://quantapi.51ifind.com/api/v1"
+  }
+}
