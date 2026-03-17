@@ -32,3 +32,16 @@ skills/market-emotion/.intraday_emotion_state.json
 
 # Archives / binaries
 *.zip
+
+# Local demos / scratch outputs
+*.html
+*.txt
+*.csv
+*.jsonl
+
+# Workspace-local docs / generated bundles
+ObsidianTemplates.zip
+skills-showcase-template-latest.zip
+skills-showcase-web-template.zip
+sina-bigorder.zip
+ths-smart-stock-picking.zip
