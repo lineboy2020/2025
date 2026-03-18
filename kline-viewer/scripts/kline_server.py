@@ -252,6 +252,134 @@ def build_dataset_summary(name: str, limit: int = 200, selected_date: Optional[s
     }
 
 
+
+
+def build_qingxu_series(limit: int = 240) -> Dict[str, Any]:
+    path = get_data_source_path('qingxu')
+    df = pd.read_parquet(path)
+    df['tradeDate'] = df['tradeDate'].astype(str)
+    df = df.sort_values('tradeDate').tail(limit).copy()
+    rows = []
+    for _, row in df.iterrows():
+        rise_count = _safe_value(row.get('rise_count'))
+        fall_count = _safe_value(row.get('fall_count'))
+        limit_up_count = _safe_value(row.get('limit_up_count'))
+        limit_down_count = _safe_value(row.get('limit_down_count'))
+        total_count = _safe_value(row.get('total_count'))
+        rise_ratio = _safe_value(row.get('rise_ratio'))
+        fall_ratio = _safe_value(row.get('fall_ratio'))
+        explosion_count = _safe_value(row.get('explosion_count'))
+        explosion_rate = _safe_value(row.get('explosion_rate'))
+
+        score = 50.0
+        score += float(rise_ratio or 0) * 35
+        score -= float(fall_ratio or 0) * 20
+        score += min(float(limit_up_count or 0), 150) / 150 * 20
+        score -= min(float(limit_down_count or 0), 50) / 50 * 18
+        score -= min(float(explosion_rate or 0), 0.5) / 0.5 * 12
+        score = round(max(0, min(100, score)), 2)
+
+        if score >= 75:
+            emotion_level = '强'
+            emotion_label = '强势'
+            emotion_color = '#26a69a'
+            traffic_light = 'green'
+        elif score >= 55:
+            emotion_level = '中'
+            emotion_label = '中性偏强'
+            emotion_color = '#ffb703'
+            traffic_light = 'yellow'
+        else:
+            emotion_level = '弱'
+            emotion_label = '偏弱'
+            emotion_color = '#ef5350'
+            traffic_light = 'red'
+
+        rows.append({
+            'date': str(row['tradeDate']),
+            'rise_count': rise_count,
+            'fall_count': fall_count,
+            'limit_up_count': limit_up_count,
+            'limit_down_count': limit_down_count,
+            'total_count': total_count,
+            'rise_ratio': rise_ratio,
+            'fall_ratio': fall_ratio,
+            'explosion_count': explosion_count,
+            'explosion_rate': explosion_rate,
+            'emotion_score': score,
+            'emotion_level': emotion_level,
+            'emotion_label': emotion_label,
+            'emotion_color': emotion_color,
+            'traffic_light': traffic_light,
+        })
+    return {'success': True, 'items': rows}
+
+
+def build_zhishu_series(limit: int = 240) -> Dict[str, Any]:
+    path = get_data_source_path('zhishu')
+    df = pd.read_parquet(path)
+    if 'tradeDate' in df.columns:
+        df['tradeDate'] = pd.to_datetime(df['tradeDate'], errors='coerce').dt.strftime('%Y-%m-%d')
+    symbol_col = 'symbol' if 'symbol' in df.columns else ('stock_code' if 'stock_code' in df.columns else None)
+    symbols = sorted(df[symbol_col].dropna().astype(str).unique().tolist()) if symbol_col else []
+    out = {}
+    for sym in symbols:
+        sub = df[df[symbol_col].astype(str) == sym].sort_values('tradeDate').tail(limit).copy()
+        rows = []
+        for _, row in sub.iterrows():
+            rows.append({
+                'time': str(row.get('tradeDate')),
+                'open': _safe_value(row.get('open')),
+                'high': _safe_value(row.get('high')),
+                'low': _safe_value(row.get('low')),
+                'close': _safe_value(row.get('close') if 'close' in row else row.get('latest')),
+                'amount': _safe_value(row.get('amount')),
+            })
+        out[sym] = rows
+    return {'success': True, 'series': out, 'symbols': symbols}
+
+
+def build_limit_up_trend(limit: int = 120) -> Dict[str, Any]:
+    path = get_data_source_path('limit_up')
+    df = pd.read_parquet(path)
+    df['trade_date'] = df['trade_date'].astype(str)
+    agg = df.groupby('trade_date').agg(
+        total=('stock_code', 'count'),
+        first_board=('is_first_limit_up', 'sum'),
+        yizi=('is_yizi_limit_up', 'sum'),
+        avg_boards=('consecutive_boards', 'mean')
+    ).reset_index().sort_values('trade_date').tail(limit)
+    items = []
+    for _, row in agg.iterrows():
+        items.append({
+            'date': row['trade_date'],
+            'total': int(row['total']),
+            'first_board': int(row['first_board']) if pd.notna(row['first_board']) else 0,
+            'yizi': int(row['yizi']) if pd.notna(row['yizi']) else 0,
+            'avg_boards': round(float(row['avg_boards']), 2) if pd.notna(row['avg_boards']) else 0,
+        })
+    return {'success': True, 'items': items}
+
+
+def build_longhubang_marks(symbol: str, limit: int = 240) -> Dict[str, Any]:
+    path = get_data_source_path('longhubang')
+    df = pd.read_parquet(path)
+    df['trade_date'] = df['trade_date'].astype(str)
+    sym = KlineServer._normalize_symbol(symbol)
+    sub = df[df['stock_code'].astype(str) == sym].sort_values('trade_date').tail(limit).copy()
+    items = []
+    for _, row in sub.iterrows():
+        items.append({
+            'date': row['trade_date'],
+            'board_type': _safe_value(row.get('board_type')),
+            'reason': _safe_value(row.get('reason')),
+            'net_amount': _safe_value(row.get('net_amount')),
+            'buy_amount': _safe_value(row.get('buy_amount')),
+            'sell_amount': _safe_value(row.get('sell_amount')),
+            'detail': _safe_value(row.get('detail')),
+        })
+    return {'success': True, 'items': items, 'symbol': sym}
+
 def get_db_path() -> str:
     """获取数据库路径"""
     # 优先使用环境变量
@@ -762,6 +890,46 @@ async def api_data_check_all(limit: int = Query(100, ge=1, le=500)):
         except Exception as e:
             result.append({"success": False, "dataset": name, "error": str(e)})
     return JSONResponse(content={"success": True, "items": result})
+
+
+@app.get("/api/chart/qingxu")
+async def api_chart_qingxu(limit: int = Query(240, ge=10, le=1000)):
+    return JSONResponse(content=build_qingxu_series(limit=limit))
+
+
+@app.get("/api/chart/zhishu")
+async def api_chart_zhishu(limit: int = Query(240, ge=10, le=1000)):
+    return JSONResponse(content=build_zhishu_series(limit=limit))
+
+
+@app.get("/api/chart/limit-up")
+async def api_chart_limit_up(limit: int = Query(120, ge=10, le=1000)):
+    return JSONResponse(content=build_limit_up_trend(limit=limit))
+
+
+@app.get("/api/chart/longhubang/{symbol}")
+async def api_chart_longhubang(symbol: str, limit: int = Query(240, ge=10, le=1000)):
+    return JSONResponse(content=build_longhubang_marks(symbol, limit=limit))
+
+
+@app.get("/static/qingxu.html")
+async def page_qingxu():
+    return FileResponse(str(SKILL_ROOT / "static" / "qingxu.html"))
+
+
+@app.get("/static/zhishu.html")
+async def page_zhishu():
+    return FileResponse(str(SKILL_ROOT / "static" / "zhishu.html"))
+
+
+@app.get("/static/limit_up.html")
+async def page_limit_up():
+    return FileResponse(str(SKILL_ROOT / "static" / "limit_up.html"))
+
+
+@app.get("/static/longhubang.html")
+async def page_longhubang():
+    return FileResponse(str(SKILL_ROOT / "static" / "longhubang.html"))
 
 
 @app.get("/api/screener/dates")
