@@ -295,6 +295,21 @@ def build_qingxu_series(limit: int = 240) -> Dict[str, Any]:
             emotion_color = '#ef5350'
             traffic_light = 'red'
 
+        phase_tag = '震荡'
+        phase_note = '情绪处于常态波动区间，观察持续性。'
+        if float(rise_ratio or 0) <= 0.28 and float(limit_down_count or 0) >= 20:
+            phase_tag = '冰点'
+            phase_note = '下跌与跌停压力较大，市场处于明显冰点区。'
+        elif float(rise_ratio or 0) < 0.42 and float(limit_down_count or 0) >= 10:
+            phase_tag = '退潮'
+            phase_note = '亏钱效应抬头，情绪有走弱迹象。'
+        elif float(rise_ratio or 0) >= 0.62 and float(limit_up_count or 0) >= 60 and float(explosion_rate or 0) <= 0.28:
+            phase_tag = '修复'
+            phase_note = '上涨占比和涨停表现改善，情绪处于修复阶段。'
+        elif float(rise_ratio or 0) >= 0.72 and float(limit_up_count or 0) >= 100 and float(explosion_rate or 0) <= 0.22:
+            phase_tag = '过热'
+            phase_note = '做多热度很高，需留意次日分歧与兑现压力。'
+
         rows.append({
             'date': str(row['tradeDate']),
             'rise_count': rise_count,
@@ -311,6 +326,8 @@ def build_qingxu_series(limit: int = 240) -> Dict[str, Any]:
             'emotion_label': emotion_label,
             'emotion_color': emotion_color,
             'traffic_light': traffic_light,
+            'phase_tag': phase_tag,
+            'phase_note': phase_note,
         })
     return {'success': True, 'items': rows}
 

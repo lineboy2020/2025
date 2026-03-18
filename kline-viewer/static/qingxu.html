@@ -9,50 +9,37 @@
     *{box-sizing:border-box}
     body{margin:0;background:#131722;color:#d1d4dc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif}
     .header{padding:14px 18px;background:#1e222d;border-bottom:1px solid #2a2e39;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .title{font-size:18px;font-weight:700}
-    .sub{font-size:12px;color:#8b94a7}
-    .wrap{padding:14px 16px 18px}
-    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+    .title{font-size:18px;font-weight:700}.sub{font-size:12px;color:#8b94a7}
+    .wrap{padding:14px 16px 18px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
     .card{background:#1e222d;border:1px solid #2a2e39;border-radius:10px;padding:12px 14px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-    .label{font-size:12px;color:#8b94a7;margin-bottom:6px}
-    .value{font-size:26px;font-weight:700;line-height:1.15}
-    .value.small{font-size:18px}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px}
-    .panel{background:#1e222d;border:1px solid #2a2e39;border-radius:10px;padding:10px}
-    .panel-title{padding:4px 6px 10px;font-size:13px;color:#b8c1d1}
-    .chart{height:260px}
-    .legend{display:flex;gap:14px;flex-wrap:wrap;padding:2px 6px 8px;color:#8b94a7;font-size:12px}
-    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
-    .emotion-box{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
-    .signal{display:flex;align-items:center;gap:12px;padding:8px 6px 2px}
+    .label{font-size:12px;color:#8b94a7;margin-bottom:6px}.value{font-size:26px;font-weight:700;line-height:1.15}.value.small{font-size:18px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}.panel{background:#1e222d;border:1px solid #2a2e39;border-radius:10px;padding:10px}
+    .panel-title{padding:4px 6px 10px;font-size:13px;color:#b8c1d1}.chart{height:260px}
+    .legend{display:flex;gap:14px;flex-wrap:wrap;padding:2px 6px 8px;color:#8b94a7;font-size:12px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+    .emotion-box{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.signal{display:flex;align-items:center;gap:12px;padding:8px 6px 2px}
     .light{width:18px;height:18px;border-radius:50%;box-shadow:0 0 16px rgba(255,255,255,.18)}
-    .scorebar{height:14px;border-radius:999px;background:#2a2e39;overflow:hidden;margin-top:10px}
-    .scorefill{height:100%;background:linear-gradient(90deg,#ef5350 0%,#ffb703 50%,#26a69a 100%)}
-    .hint{font-size:12px;color:#8b94a7;margin-top:8px;line-height:1.6}
-    @media (min-width: 1100px){
-      .grid{grid-template-columns:1fr 1fr}
-      .panel.span-2{grid-column:1 / -1}
-    }
-    @media (max-width: 820px){
-      .emotion-box{grid-template-columns:1fr}
-    }
+    .scorebar{height:14px;border-radius:999px;background:#2a2e39;overflow:hidden;margin-top:10px}.scorefill{height:100%;background:linear-gradient(90deg,#ef5350 0%,#ffb703 50%,#26a69a 100%)}
+    .hint{font-size:12px;color:#8b94a7;margin-top:8px;line-height:1.6}.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:600}
+    .pill.gray{background:#2a2e39;color:#d1d4dc}.pill.red{background:rgba(239,83,80,.15);color:#ff8a80}.pill.yellow{background:rgba(255,183,3,.15);color:#ffd166}.pill.green{background:rgba(38,166,154,.15);color:#7ce0cf}.pill.blue{background:rgba(76,141,255,.15);color:#8fb8ff}
+    @media (min-width: 1100px){.grid{grid-template-columns:1fr 1fr}.panel.span-2{grid-column:1 / -1}}
+    @media (max-width: 820px){.emotion-box{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="header">
     <div>
       <div class="title">市场情绪面板</div>
-      <div class="sub">上涨/下跌家数、涨跌停、样本总数、占比 + 情绪评分 + 红绿灯判断</div>
+      <div class="sub">上涨/下跌家数、涨跌停、样本总数、占比 + 情绪评分 + 红绿灯 + 周期标签</div>
     </div>
     <div class="sub" id="meta">加载中...</div>
   </div>
 
   <div class="wrap">
     <div class="cards" id="cards"></div>
-
     <div class="grid">
       <section class="panel span-2">
-        <div class="panel-title">情绪评分 / 红绿灯</div>
+        <div class="panel-title">情绪评分 / 红绿灯 / 周期标签</div>
         <div class="emotion-box">
           <div>
             <div class="signal">
@@ -63,6 +50,7 @@
               </div>
             </div>
             <div class="scorebar"><div class="scorefill" id="scoreFill" style="width:0%"></div></div>
+            <div class="tag-row" id="tags"></div>
             <div class="hint" id="emotionHint">-</div>
           </div>
           <div id="scoreChart" class="chart" style="height:220px"></div>
@@ -100,41 +88,26 @@
   </div>
 
   <script>
-    const THEME = {
-      bg: '#131722', panel: '#1e222d', grid: '#2a2e39', text: '#d1d4dc', muted: '#8b94a7',
-      rise: '#26a69a', fall: '#ef5350', total: '#8b94a7', riseRatio: '#4c8dff', fallRatio: '#ffb703',
-      up: '#ff4d6d', down: '#7b61ff'
-    };
-
+    const THEME = { bg:'#131722', panel:'#1e222d', grid:'#2a2e39', text:'#d1d4dc', muted:'#8b94a7', rise:'#26a69a', fall:'#ef5350', total:'#8b94a7', riseRatio:'#4c8dff', fallRatio:'#ffb703', up:'#ff4d6d', down:'#7b61ff' };
     function createBaseChart(el){
-      return LightweightCharts.createChart(el, {
-        layout: { background: { color: THEME.panel }, textColor: THEME.text },
-        grid: { vertLines: { color: THEME.grid }, horzLines: { color: THEME.grid } },
-        rightPriceScale: { borderColor: THEME.grid },
-        timeScale: { borderColor: THEME.grid, timeVisible: false, secondsVisible: false },
-        crosshair: { mode: 0 },
-        localization: { locale: 'zh-CN' }
-      });
+      return LightweightCharts.createChart(el, { layout:{ background:{ color:THEME.panel }, textColor:THEME.text }, grid:{ vertLines:{ color:THEME.grid }, horzLines:{ color:THEME.grid } }, rightPriceScale:{ borderColor:THEME.grid }, timeScale:{ borderColor:THEME.grid, timeVisible:false, secondsVisible:false }, crosshair:{ mode:0 }, localization:{ locale:'zh-CN' } });
     }
-    function fmtPct(v){ return (v===null||v===undefined||Number.isNaN(Number(v))) ? '-' : (Number(v)*100).toFixed(2)+'%'; }
-    function fmtNum(v){ return (v===null||v===undefined||Number.isNaN(Number(v))) ? '-' : Number(v).toLocaleString('zh-CN'); }
-    function fmtScore(v){ return (v===null||v===undefined||Number.isNaN(Number(v))) ? '-' : Number(v).toFixed(1); }
+    function fmtPct(v){ return (v===null||v===undefined||Number.isNaN(Number(v)))?'-':(Number(v)*100).toFixed(2)+'%'; }
+    function fmtNum(v){ return (v===null||v===undefined||Number.isNaN(Number(v)))?'-':Number(v).toLocaleString('zh-CN'); }
+    function fmtScore(v){ return (v===null||v===undefined||Number.isNaN(Number(v)))?'-':Number(v).toFixed(1); }
 
     function renderCards(last){
       const cards = [
-        ['最新日期', last.date || '-'],
-        ['上涨家数', fmtNum(last.rise_count)],
-        ['下跌家数', fmtNum(last.fall_count)],
-        ['涨停家数', fmtNum(last.limit_up_count)],
-        ['跌停家数', fmtNum(last.limit_down_count)],
-        ['样本总数', fmtNum(last.total_count)],
-        ['上涨占比', fmtPct(last.rise_ratio)],
-        ['下跌占比', fmtPct(last.fall_ratio)],
-        ['情绪评分', fmtScore(last.emotion_score)],
+        ['最新日期', last.date || '-'], ['上涨家数', fmtNum(last.rise_count)], ['下跌家数', fmtNum(last.fall_count)], ['涨停家数', fmtNum(last.limit_up_count)], ['跌停家数', fmtNum(last.limit_down_count)], ['样本总数', fmtNum(last.total_count)], ['上涨占比', fmtPct(last.rise_ratio)], ['下跌占比', fmtPct(last.fall_ratio)], ['情绪评分', fmtScore(last.emotion_score)]
       ];
-      document.getElementById('cards').innerHTML = cards.map(([k,v]) => `
-        <div class="card"><div class="label">${k}</div><div class="value">${v}</div></div>
-      `).join('');
+      document.getElementById('cards').innerHTML = cards.map(([k,v]) => `<div class="card"><div class="label">${k}</div><div class="value">${v}</div></div>`).join('');
+    }
+
+    function phasePillClass(tag){
+      if(tag === '冰点' || tag === '退潮') return 'red';
+      if(tag === '过热') return 'yellow';
+      if(tag === '修复') return 'green';
+      return 'gray';
     }
 
     function renderEmotion(last){
@@ -142,7 +115,21 @@
       document.getElementById('light').style.background = lightMap[last.traffic_light] || '#8b94a7';
       document.getElementById('emotionLabel').textContent = `${last.emotion_label || '-'}（${fmtScore(last.emotion_score)}）`;
       document.getElementById('scoreFill').style.width = `${Math.max(0, Math.min(100, Number(last.emotion_score || 0)))}%`;
-      document.getElementById('emotionHint').textContent = `基于上涨/下跌占比、涨停/跌停家数、炸板率综合评估。当前：上涨 ${fmtPct(last.rise_ratio)}，下跌 ${fmtPct(last.fall_ratio)}，涨停 ${fmtNum(last.limit_up_count)}，跌停 ${fmtNum(last.limit_down_count)}。`;
+      document.getElementById('tags').innerHTML = `
+        <span class="pill blue">红绿灯：${last.traffic_light || '-'}</span>
+        <span class="pill ${phasePillClass(last.phase_tag)}">周期：${last.phase_tag || '-'}</span>
+        <span class="pill gray">炸板率：${fmtPct(last.explosion_rate)}</span>
+      `;
+      document.getElementById('emotionHint').textContent = last.phase_note || `基于上涨/下跌占比、涨停/跌停家数、炸板率综合评估。当前：上涨 ${fmtPct(last.rise_ratio)}，下跌 ${fmtPct(last.fall_ratio)}，涨停 ${fmtNum(last.limit_up_count)}，跌停 ${fmtNum(last.limit_down_count)}。`;
+    }
+
+    function addScoreBands(chart){
+      const weak = chart.addLineSeries({ color:'rgba(239,83,80,0)', lineWidth:1, lastValueVisible:false, priceLineVisible:false });
+      const mid = chart.addLineSeries({ color:'rgba(255,183,3,0)', lineWidth:1, lastValueVisible:false, priceLineVisible:false });
+      const strong = chart.addLineSeries({ color:'rgba(38,166,154,0)', lineWidth:1, lastValueVisible:false, priceLineVisible:false });
+      weak.createPriceLine({ price:55, color:'rgba(239,83,80,.5)', lineWidth:1, lineStyle:2, axisLabelVisible:true, title:'弱势线 55' });
+      mid.createPriceLine({ price:75, color:'rgba(38,166,154,.55)', lineWidth:1, lineStyle:2, axisLabelVisible:true, title:'强势线 75' });
+      return { weak, mid, strong };
     }
 
     async function run(){
@@ -150,11 +137,11 @@
       const j = await r.json();
       const data = j.items || [];
       const last = data[data.length - 1] || {};
-      renderCards(last);
-      renderEmotion(last);
-      document.getElementById('meta').textContent = `最近 ${data.length} 个交易日 · 最新 ${last.date || '-'}`;
+      renderCards(last); renderEmotion(last);
+      document.getElementById('meta').textContent = `最近 ${data.length} 个交易日 · 最新 ${last.date || '-'} · 周期 ${last.phase_tag || '-'}`;
 
       const scoreChart = createBaseChart(document.getElementById('scoreChart'));
+      addScoreBands(scoreChart);
       const scoreSeries = scoreChart.addAreaSeries({ lineColor:'#00c2ff', topColor:'rgba(0,194,255,.35)', bottomColor:'rgba(0,194,255,.02)', lineWidth:2, title:'情绪评分' });
       scoreSeries.setData(data.map(x => ({ time:x.date, value:Number(x.emotion_score || 0) })));
       scoreChart.timeScale().fitContent();
@@ -169,30 +156,23 @@
       countChart.timeScale().fitContent();
 
       const ratioChart = createBaseChart(document.getElementById('ratioChart'));
-      const riseRatioSeries = ratioChart.addAreaSeries({ lineColor: THEME.riseRatio, topColor: 'rgba(76,141,255,0.35)', bottomColor: 'rgba(76,141,255,0.02)', lineWidth: 2, title: '上涨占比' });
-      const fallRatioSeries = ratioChart.addLineSeries({ color: THEME.fallRatio, lineWidth: 2, title: '下跌占比' });
-      riseRatioSeries.setData(data.map(x => ({ time: x.date, value: Number((Number(x.rise_ratio || 0) * 100).toFixed(2)) })));
-      fallRatioSeries.setData(data.map(x => ({ time: x.date, value: Number((Number(x.fall_ratio || 0) * 100).toFixed(2)) })));
+      const riseRatioSeries = ratioChart.addAreaSeries({ lineColor: THEME.riseRatio, topColor:'rgba(76,141,255,0.35)', bottomColor:'rgba(76,141,255,0.02)', lineWidth:2, title:'上涨占比' });
+      const fallRatioSeries = ratioChart.addLineSeries({ color: THEME.fallRatio, lineWidth:2, title:'下跌占比' });
+      riseRatioSeries.setData(data.map(x => ({ time:x.date, value:Number((Number(x.rise_ratio || 0)*100).toFixed(2)) })));
+      fallRatioSeries.setData(data.map(x => ({ time:x.date, value:Number((Number(x.fall_ratio || 0)*100).toFixed(2)) })));
       ratioChart.timeScale().fitContent();
 
       const limitChart = createBaseChart(document.getElementById('limitChart'));
-      const upSeries = limitChart.addHistogramSeries({ color: THEME.up, priceFormat: { type: 'volume' }, title: '涨停家数' });
-      const downSeries = limitChart.addLineSeries({ color: THEME.down, lineWidth: 2, title: '跌停家数' });
-      upSeries.setData(data.map(x => ({ time: x.date, value: Number(x.limit_up_count || 0), color: THEME.up })));
-      downSeries.setData(data.map(x => ({ time: x.date, value: Number(x.limit_down_count || 0) })));
+      const upSeries = limitChart.addHistogramSeries({ color: THEME.up, priceFormat:{ type:'volume' }, title:'涨停家数' });
+      const downSeries = limitChart.addLineSeries({ color: THEME.down, lineWidth:2, title:'跌停家数' });
+      upSeries.setData(data.map(x => ({ time:x.date, value:Number(x.limit_up_count || 0), color:THEME.up })));
+      downSeries.setData(data.map(x => ({ time:x.date, value:Number(x.limit_down_count || 0) })));
       limitChart.timeScale().fitContent();
 
       const charts = [scoreChart, countChart, ratioChart, limitChart];
       const ids = ['scoreChart', 'countChart', 'ratioChart', 'limitChart'];
-      const resize = () => {
-        charts.forEach((chart, i) => {
-          const el = document.getElementById(ids[i]);
-          chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
-          chart.timeScale().fitContent();
-        });
-      };
-      window.addEventListener('resize', resize);
-      setTimeout(resize, 60);
+      const resize = () => charts.forEach((chart,i)=>{ const el=document.getElementById(ids[i]); chart.applyOptions({ width:el.clientWidth, height:el.clientHeight }); chart.timeScale().fitContent(); });
+      window.addEventListener('resize', resize); setTimeout(resize, 60);
     }
 
     run().catch(err => {
