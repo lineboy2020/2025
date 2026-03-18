@@ -1,0 +1,548 @@
+{
+  "batch_start": "2026-03-02",
+  "batch_end": "2026-03-16",
+  "run_count": 10,
+  "aggregate": {
+    "total": 30,
+    "win_count": 13,
+    "stoploss_count": 6,
+    "avg_return_pct": -0.4647,
+    "tp_hit_count": 9,
+    "total_days": 10,
+    "traded_days": 10,
+    "positive_days": 5,
+    "day_win_rate": 0.5
+  },
+  "runs": [
+    {
+      "date": "2026-03-02",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 1,
+        "stoploss_count": 2,
+        "avg_return_pct": -3.0,
+        "tp_hit_count": 1
+      },
+      "results": [
+        {
+          "symbol": "000506.SZ",
+          "name": "招金黄金",
+          "buy_date": "2026-03-02 00:00:00",
+          "sell_date": "2026-03-03 00:00:00",
+          "buy_price": 22.33,
+          "next_open": 21.84,
+          "next_high": 23.83,
+          "next_low": 21.0,
+          "next_close": 21.6,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        },
+        {
+          "symbol": "000426.SZ",
+          "name": "兴业银锡",
+          "buy_date": "2026-03-02 00:00:00",
+          "sell_date": "2026-03-03 00:00:00",
+          "buy_price": 60.22,
+          "next_open": 56.9,
+          "next_high": 57.92,
+          "next_low": 54.2,
+          "next_close": 54.2,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        },
+        {
+          "symbol": "000603.SZ",
+          "name": "盛达资源",
+          "buy_date": "2026-03-02 00:00:00",
+          "sell_date": "2026-03-03 00:00:00",
+          "buy_price": 56.57,
+          "next_open": 53.61,
+          "next_high": 54.72,
+          "next_low": 50.91,
+          "next_close": 50.91,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-03",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 0,
+        "stoploss_count": 2,
+        "avg_return_pct": -6.3,
+        "tp_hit_count": 0
+      },
+      "results": [
+        {
+          "symbol": "000096.SZ",
+          "name": "广聚能源",
+          "buy_date": "2026-03-03 00:00:00",
+          "sell_date": "2026-03-04 00:00:00",
+          "buy_price": 13.27,
+          "next_open": 13.2,
+          "next_high": 13.2,
+          "next_low": 11.94,
+          "next_close": 12.15,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        },
+        {
+          "symbol": "000593.SZ",
+          "name": "德龙汇能",
+          "buy_date": "2026-03-03 00:00:00",
+          "sell_date": "2026-03-04 00:00:00",
+          "buy_price": 16.62,
+          "next_open": 15.47,
+          "next_high": 15.8,
+          "next_low": 14.96,
+          "next_close": 15.2,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        },
+        {
+          "symbol": "000723.SZ",
+          "name": "美锦能源",
+          "buy_date": "2026-03-03 00:00:00",
+          "sell_date": "2026-03-04 00:00:00",
+          "buy_price": 5.51,
+          "next_open": 5.4,
+          "next_high": 5.4,
+          "next_low": 5.15,
+          "next_close": 5.24,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -4.9
+        }
+      ]
+    },
+    {
+      "date": "2026-03-04",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 0,
+        "stoploss_count": 1,
+        "avg_return_pct": -3.7933,
+        "tp_hit_count": 0
+      },
+      "results": [
+        {
+          "symbol": "000519.SZ",
+          "name": "中兵红箭",
+          "buy_date": "2026-03-04 00:00:00",
+          "sell_date": "2026-03-05 00:00:00",
+          "buy_price": 20.69,
+          "next_open": 20.36,
+          "next_high": 20.64,
+          "next_low": 20.02,
+          "next_close": 20.44,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -1.21
+        },
+        {
+          "symbol": "000070.SZ",
+          "name": "特发信息",
+          "buy_date": "2026-03-04 00:00:00",
+          "sell_date": "2026-03-05 00:00:00",
+          "buy_price": 19.21,
+          "next_open": 19.62,
+          "next_high": 19.85,
+          "next_low": 17.4,
+          "next_close": 17.51,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        },
+        {
+          "symbol": "000657.SZ",
+          "name": "中钨高新",
+          "buy_date": "2026-03-04 00:00:00",
+          "sell_date": "2026-03-05 00:00:00",
+          "buy_price": 66.48,
+          "next_open": 67.81,
+          "next_high": 67.95,
+          "next_low": 63.66,
+          "next_close": 64.37,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -3.17
+        }
+      ]
+    },
+    {
+      "date": "2026-03-05",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.1867,
+        "tp_hit_count": 2
+      },
+      "results": [
+        {
+          "symbol": "000815.SZ",
+          "name": "美利云",
+          "buy_date": "2026-03-05 00:00:00",
+          "sell_date": "2026-03-06 00:00:00",
+          "buy_price": 14.83,
+          "next_open": 15.17,
+          "next_high": 16.31,
+          "next_low": 15.08,
+          "next_close": 16.31,
+          "exit_reason": "take_profit_8",
+          "exit_return_pct": 8.0
+        },
+        {
+          "symbol": "000547.SZ",
+          "name": "航天发展",
+          "buy_date": "2026-03-05 00:00:00",
+          "sell_date": "2026-03-06 00:00:00",
+          "buy_price": 31.61,
+          "next_open": 31.2,
+          "next_high": 33.99,
+          "next_low": 31.2,
+          "next_close": 32.66,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        },
+        {
+          "symbol": "000400.SZ",
+          "name": "许继电气",
+          "buy_date": "2026-03-05 00:00:00",
+          "sell_date": "2026-03-06 00:00:00",
+          "buy_price": 33.78,
+          "next_open": 33.29,
+          "next_high": 34.42,
+          "next_low": 33.06,
+          "next_close": 33.63,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -0.44
+        }
+      ]
+    },
+    {
+      "date": "2026-03-06",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 3,
+        "stoploss_count": 0,
+        "avg_return_pct": 5.3333,
+        "tp_hit_count": 3
+      },
+      "results": [
+        {
+          "symbol": "000815.SZ",
+          "name": "美利云",
+          "buy_date": "2026-03-06 00:00:00",
+          "sell_date": "2026-03-09 00:00:00",
+          "buy_price": 16.31,
+          "next_open": 16.53,
+          "next_high": 17.94,
+          "next_low": 15.81,
+          "next_close": 17.94,
+          "exit_reason": "take_profit_8",
+          "exit_return_pct": 8.0
+        },
+        {
+          "symbol": "000422.SZ",
+          "name": "湖北宜化",
+          "buy_date": "2026-03-06 00:00:00",
+          "sell_date": "2026-03-09 00:00:00",
+          "buy_price": 18.22,
+          "next_open": 19.15,
+          "next_high": 19.6,
+          "next_low": 18.21,
+          "next_close": 18.28,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        },
+        {
+          "symbol": "000791.SZ",
+          "name": "甘肃能源",
+          "buy_date": "2026-03-06 00:00:00",
+          "sell_date": "2026-03-09 00:00:00",
+          "buy_price": 8.5,
+          "next_open": 8.62,
+          "next_high": 8.8,
+          "next_low": 8.38,
+          "next_close": 8.45,
+          "exit_reason": "take_profit_3",
+          "exit_return_pct": 3.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-09",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 1,
+        "stoploss_count": 0,
+        "avg_return_pct": -0.6933,
+        "tp_hit_count": 0
+      },
+      "results": [
+        {
+          "symbol": "000034.SZ",
+          "name": "神州数码",
+          "buy_date": "2026-03-09 00:00:00",
+          "sell_date": "2026-03-10 00:00:00",
+          "buy_price": 40.01,
+          "next_open": 40.5,
+          "next_high": 40.5,
+          "next_low": 39.3,
+          "next_close": 39.63,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -0.95
+        },
+        {
+          "symbol": "000792.SZ",
+          "name": "盐湖股份",
+          "buy_date": "2026-03-09 00:00:00",
+          "sell_date": "2026-03-10 00:00:00",
+          "buy_price": 38.36,
+          "next_open": 38.8,
+          "next_high": 39.05,
+          "next_low": 37.81,
+          "next_close": 38.53,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": 0.44
+        },
+        {
+          "symbol": "000682.SZ",
+          "name": "东方电子",
+          "buy_date": "2026-03-09 00:00:00",
+          "sell_date": "2026-03-10 00:00:00",
+          "buy_price": 15.3,
+          "next_open": 15.16,
+          "next_high": 15.27,
+          "next_low": 14.89,
+          "next_close": 15.06,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -1.57
+        }
+      ]
+    },
+    {
+      "date": "2026-03-10",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 1,
+        "stoploss_count": 0,
+        "avg_return_pct": 1.0167,
+        "tp_hit_count": 1
+      },
+      "results": [
+        {
+          "symbol": "000070.SZ",
+          "name": "特发信息",
+          "buy_date": "2026-03-10 00:00:00",
+          "sell_date": "2026-03-11 00:00:00",
+          "buy_price": 17.46,
+          "next_open": 17.4,
+          "next_high": 18.55,
+          "next_low": 17.23,
+          "next_close": 17.47,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        },
+        {
+          "symbol": "000700.SZ",
+          "name": "模塑科技",
+          "buy_date": "2026-03-10 00:00:00",
+          "sell_date": "2026-03-11 00:00:00",
+          "buy_price": 13.14,
+          "next_open": 13.16,
+          "next_high": 13.33,
+          "next_low": 12.9,
+          "next_close": 13.02,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -0.91
+        },
+        {
+          "symbol": "000547.SZ",
+          "name": "航天发展",
+          "buy_date": "2026-03-10 00:00:00",
+          "sell_date": "2026-03-11 00:00:00",
+          "buy_price": 33.66,
+          "next_open": 34.0,
+          "next_high": 34.0,
+          "next_low": 32.8,
+          "next_close": 33.31,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -1.04
+        }
+      ]
+    },
+    {
+      "date": "2026-03-11",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 3,
+        "stoploss_count": 0,
+        "avg_return_pct": 3.4333,
+        "tp_hit_count": 2
+      },
+      "results": [
+        {
+          "symbol": "000601.SZ",
+          "name": "韶能股份",
+          "buy_date": "2026-03-11 00:00:00",
+          "sell_date": "2026-03-12 00:00:00",
+          "buy_price": 6.99,
+          "next_open": 6.7,
+          "next_high": 7.38,
+          "next_low": 6.66,
+          "next_close": 7.01,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        },
+        {
+          "symbol": "000591.SZ",
+          "name": "太阳能",
+          "buy_date": "2026-03-11 00:00:00",
+          "sell_date": "2026-03-12 00:00:00",
+          "buy_price": 6.65,
+          "next_open": 6.65,
+          "next_high": 6.73,
+          "next_low": 6.46,
+          "next_close": 6.67,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": 0.3
+        },
+        {
+          "symbol": "000422.SZ",
+          "name": "湖北宜化",
+          "buy_date": "2026-03-11 00:00:00",
+          "sell_date": "2026-03-12 00:00:00",
+          "buy_price": 18.38,
+          "next_open": 18.77,
+          "next_high": 19.8,
+          "next_low": 18.14,
+          "next_close": 19.44,
+          "exit_reason": "take_profit_5",
+          "exit_return_pct": 5.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-12",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 0,
+        "stoploss_count": 1,
+        "avg_return_pct": -5.0467,
+        "tp_hit_count": 0
+      },
+      "results": [
+        {
+          "symbol": "000815.SZ",
+          "name": "美利云",
+          "buy_date": "2026-03-12 00:00:00",
+          "sell_date": "2026-03-13 00:00:00",
+          "buy_price": 18.84,
+          "next_open": 18.1,
+          "next_high": 18.13,
+          "next_low": 16.96,
+          "next_close": 16.96,
+          "exit_reason": "stop_loss",
+          "exit_return_pct": -7.0
+        },
+        {
+          "symbol": "000155.SZ",
+          "name": "川能动力",
+          "buy_date": "2026-03-12 00:00:00",
+          "sell_date": "2026-03-13 00:00:00",
+          "buy_price": 15.48,
+          "next_open": 15.48,
+          "next_high": 15.87,
+          "next_low": 15.08,
+          "next_close": 15.16,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -2.07
+        },
+        {
+          "symbol": "000791.SZ",
+          "name": "甘肃能源",
+          "buy_date": "2026-03-12 00:00:00",
+          "sell_date": "2026-03-13 00:00:00",
+          "buy_price": 8.89,
+          "next_open": 8.77,
+          "next_high": 8.8,
+          "next_low": 8.32,
+          "next_close": 8.35,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -6.07
+        }
+      ]
+    },
+    {
+      "date": "2026-03-13",
+      "candidate_count": 3,
+      "evaluated_count": 3,
+      "summary": {
+        "total": 3,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.2167,
+        "tp_hit_count": 0
+      },
+      "results": [
+        {
+          "symbol": "000777.SZ",
+          "name": "中核科技",
+          "buy_date": "2026-03-13 00:00:00",
+          "sell_date": "2026-03-16 00:00:00",
+          "buy_price": 26.84,
+          "next_open": 26.85,
+          "next_high": 27.19,
+          "next_low": 26.01,
+          "next_close": 26.7,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": -0.52
+        },
+        {
+          "symbol": "000651.SZ",
+          "name": "格力电器",
+          "buy_date": "2026-03-13 00:00:00",
+          "sell_date": "2026-03-16 00:00:00",
+          "buy_price": 38.6,
+          "next_open": 38.5,
+          "next_high": 38.9,
+          "next_low": 38.39,
+          "next_close": 38.78,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": 0.47
+        },
+        {
+          "symbol": "000568.SZ",
+          "name": "泸州老窖",
+          "buy_date": "2026-03-13 00:00:00",
+          "sell_date": "2026-03-16 00:00:00",
+          "buy_price": 107.86,
+          "next_open": 107.5,
+          "next_high": 110.33,
+          "next_low": 107.2,
+          "next_close": 108.62,
+          "exit_reason": "close_next_day",
+          "exit_return_pct": 0.7
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "generated_at": "2026-03-18T07:39:11.040554",
+  "trade_date": "2026-03-11",
+  "strategy": "trend_eod_realtime_v1",
+  "strategy_state": "tail_candidates_generated",
+  "candidate_count": 3,
+  "candidates": [
+    {
+      "symbol": "000601.SZ",
+      "name": "韶能股份",
+      "score": 93.06,
+      "intraday_gain_pct": 6.72,
+      "tail_strength": 0.9,
+      "amount": 1706257754.68,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 6.99,
+        "stop_loss_price": 6.5,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 7.2,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 7.34,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 7.55,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000591.SZ",
+      "name": "太阳能",
+      "score": 91.55,
+      "intraday_gain_pct": 6.4,
+      "tail_strength": 0.7887,
+      "amount": 2546820875.13,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 6.65,
+        "stop_loss_price": 6.18,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 6.85,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 6.98,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 7.18,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000422.SZ",
+      "name": "湖北宜化",
+      "score": 88.67,
+      "intraday_gain_pct": 5.03,
+      "tail_strength": 0.8358,
+      "amount": 1523907099.77,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 18.38,
+        "stop_loss_price": 17.09,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 18.93,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 19.3,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 19.85,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    }
+  ]
+}

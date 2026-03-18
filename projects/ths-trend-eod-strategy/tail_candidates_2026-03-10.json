@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "generated_at": "2026-03-18T07:39:09.294422",
+  "trade_date": "2026-03-10",
+  "strategy": "trend_eod_realtime_v1",
+  "strategy_state": "tail_candidates_generated",
+  "candidate_count": 3,
+  "candidates": [
+    {
+      "symbol": "000070.SZ",
+      "name": "特发信息",
+      "score": 99.36,
+      "intraday_gain_pct": 6.59,
+      "tail_strength": 0.9839,
+      "amount": 2280470279.5,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 17.46,
+        "stop_loss_price": 16.24,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 17.98,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 18.33,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 18.86,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000700.SZ",
+      "name": "模塑科技",
+      "score": 81.97,
+      "intraday_gain_pct": 4.87,
+      "tail_strength": 0.8961,
+      "amount": 716605424.69,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 13.14,
+        "stop_loss_price": 12.22,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 13.53,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 13.8,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 14.19,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000547.SZ",
+      "name": "航天发展",
+      "score": 76.58,
+      "intraday_gain_pct": 3.54,
+      "tail_strength": 0.7064,
+      "amount": 12202207226.06,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 33.66,
+        "stop_loss_price": 31.3,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 34.67,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 35.34,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 36.35,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    }
+  ]
+}
