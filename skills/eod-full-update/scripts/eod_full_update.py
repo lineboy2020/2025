@@ -327,48 +327,48 @@ class EODFullUpdater:
         self.log("[4/6] 更新 limit_up.parquet (涨停数据)")
         self.log("=" * 60)
         try:
-            raw_df = self._wc_downloader().download_wc_data(f"{self.trade_date},涨停")
-            if raw_df is None or raw_df.empty:
-                self.log("⚠️ 无涨停数据")
-                self.results['limit_up'] = {'success': True, 'count': 0}
-                return
+            from get_zhangting import DailyZhangTingCollector
+            collector = DailyZhangTingCollector()
+            try:
+                dt = pd.to_datetime(self.trade_date).to_pydatetime()
+                raw_df = collector.fetch_zhangting_data(dt)
+                if raw_df is None or raw_df.empty:
+                    self.log("⚠️ 无涨停数据")
+                    self.results['limit_up'] = {'success': True, 'count': 0}
+                    return
 
-            column_mapping = {}
-            if '股票代码' in raw_df.columns:
-                column_mapping['股票代码'] = 'symbol'
-            if '股票简称' in raw_df.columns:
-                column_mapping['股票简称'] = 'name'
-            if '最新价' in raw_df.columns:
-                column_mapping['最新价'] = 'close'
-            if '涨跌幅' in raw_df.columns:
-                column_mapping['涨跌幅'] = 'change_ratio'
-            if '成交量' in raw_df.columns:
-                column_mapping['成交量'] = 'volume'
-            if '成交额' in raw_df.columns:
-                column_mapping['成交额'] = 'amount'
-            if '首次涨停时间' in raw_df.columns:
-                column_mapping['首次涨停时间'] = 'limit_up_time'
-            if '连板数' in raw_df.columns:
-                column_mapping['连板数'] = 'continuous_boards'
-            if column_mapping:
-                raw_df = raw_df.rename(columns=column_mapping)
+                std_df = collector._standardize_data(raw_df, self.trade_date)
+                if std_df is None or std_df.empty:
+                    raise RuntimeError('limit_up 标准化结果为空')
+                std_df = std_df.drop_duplicates(subset=['trade_date', 'stock_code'], keep='first').copy()
 
-            raw_df['trade_date'] = self.trade_date
-            for col in ['symbol', 'name', 'trade_date']:
-                if col not in raw_df.columns:
-                    raw_df[col] = None
+                limit_up_path = self.data_dir / "limit_up.parquet"
+                if limit_up_path.exists():
+                    try:
+                        existing = pd.read_parquet(limit_up_path)
+                        if 'trade_date' in existing.columns:
+                            existing['trade_date'] = existing['trade_date'].astype(str)
+                            existing = existing[existing['trade_date'] != self.trade_date].copy()
+                            keep_cols = [c for c in existing.columns if c in std_df.columns]
+                            existing = existing[keep_cols] if keep_cols else pd.DataFrame()
+                        else:
+                            existing = pd.DataFrame()
+                    except Exception:
+                        existing = pd.DataFrame()
+                    merged = pd.concat([existing, std_df], ignore_index=True, sort=False)
+                else:
+                    merged = std_df
 
-            limit_up_path = self.data_dir / "limit_up.parquet"
-            if limit_up_path.exists():
-                existing = pd.read_parquet(limit_up_path)
-                if 'trade_date' in existing.columns:
-                    existing = existing[existing['trade_date'] != self.trade_date]
-                raw_df = pd.concat([existing, raw_df], ignore_index=True)
-
-            raw_df.to_parquet(limit_up_path, index=False)
-            today_count = len(raw_df[raw_df['trade_date'] == self.trade_date])
-            self.log(f"✅ 更新完成: {today_count} 只涨停股票")
-            self.results['limit_up'] = {'success': True, 'count': today_count}
+                merged = merged.drop_duplicates(subset=['trade_date', 'stock_code'], keep='last').sort_values(['trade_date', 'stock_code']).reset_index(drop=True)
+                merged.to_parquet(limit_up_path, index=False)
+                today_count = len(merged[merged['trade_date'].astype(str) == str(self.trade_date)])
+                self.log(f"✅ 更新完成: {today_count} 只涨停股票，字段数 {len(merged.columns)}")
+                self.results['limit_up'] = {'success': True, 'count': today_count, 'columns': list(merged.columns)}
+            finally:
+                try:
+                    collector.logout()
+                except Exception:
+                    pass
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['limit_up'] = {'success': False, 'error': str(e)}
