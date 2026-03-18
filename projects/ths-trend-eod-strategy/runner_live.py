@@ -19,10 +19,10 @@ def main():
     parser = argparse.ArgumentParser(description='趋势尾盘实时筛选入口')
     parser.add_argument('--date', required=True)
     parser.add_argument('--json-out', default='')
+    parser.add_argument('--history-mode', action='store_true', help='使用历史日线近似回放尾盘筛选')
     args = parser.parse_args()
 
     gateway = DataGateway()
-    universe_df = gateway.get_history(['000001.SZ'], args.date, args.date)['000001.SZ']
     # V0 版本先使用 stock_basic 表做 universe，后续可升级成更精确候选宇宙
     import duckdb
     con = duckdb.connect(gateway.duckdb_path, read_only=True)
@@ -31,33 +31,61 @@ def main():
     symbols = stock_basic['symbol'].tolist()
     names = dict(zip(stock_basic['symbol'], stock_basic['name']))
 
-    realtime_map = gateway.get_realtime(symbols)
     results = []
-    for symbol in symbols:
-        df = realtime_map.get(symbol, pd.DataFrame())
-        if df.empty:
-            continue
-        row = df.iloc[-1]
-        amount = float(row['amount']) if 'amount' in row and pd.notna(row['amount']) else None
-        candidate = evaluate_tail_candidate(
-            symbol=symbol,
-            name=names.get(symbol, symbol),
-            current_price=float(row['latest']) if 'latest' in row and pd.notna(row['latest']) else None,
-            open_price=float(row['open']) if 'open' in row and pd.notna(row['open']) else None,
-            high_price=float(row['high']) if 'high' in row and pd.notna(row['high']) else None,
-            low_price=float(row['low']) if 'low' in row and pd.notna(row['low']) else None,
-            amount=amount,
-        )
-        if candidate is None:
-            continue
-        if amount is not None and amount < gateway.config['strategy']['min_turnover_amount']:
-            continue
-        gain = candidate['intraday_gain_pct']
-        if gain is not None and (gain < gateway.config['strategy']['min_intraday_gain_pct'] or gain > gateway.config['strategy']['max_intraday_gain_pct']):
-            continue
-        if candidate['tail_strength'] < gateway.config['strategy']['tail_strength_threshold']:
-            continue
-        results.append(candidate)
+    if args.history_mode:
+        history_map = gateway.get_history(symbols, args.date, args.date)
+        for symbol in symbols:
+            df = history_map.get(symbol, pd.DataFrame())
+            if df.empty:
+                continue
+            row = df.iloc[-1]
+            amount = float(row['amount']) if 'amount' in row and pd.notna(row['amount']) else None
+            candidate = evaluate_tail_candidate(
+                symbol=symbol,
+                name=names.get(symbol, symbol),
+                current_price=float(row['close']) if 'close' in row and pd.notna(row['close']) else None,
+                open_price=float(row['open']) if 'open' in row and pd.notna(row['open']) else None,
+                high_price=float(row['high']) if 'high' in row and pd.notna(row['high']) else None,
+                low_price=float(row['low']) if 'low' in row and pd.notna(row['low']) else None,
+                amount=amount,
+            )
+            if candidate is None:
+                continue
+            if amount is not None and amount < gateway.config['strategy']['min_turnover_amount']:
+                continue
+            gain = candidate['intraday_gain_pct']
+            if gain is not None and (gain < gateway.config['strategy']['min_intraday_gain_pct'] or gain > gateway.config['strategy']['max_intraday_gain_pct']):
+                continue
+            if candidate['tail_strength'] < gateway.config['strategy']['tail_strength_threshold']:
+                continue
+            results.append(candidate)
+    else:
+        realtime_map = gateway.get_realtime(symbols)
+        for symbol in symbols:
+            df = realtime_map.get(symbol, pd.DataFrame())
+            if df.empty:
+                continue
+            row = df.iloc[-1]
+            amount = float(row['amount']) if 'amount' in row and pd.notna(row['amount']) else None
+            candidate = evaluate_tail_candidate(
+                symbol=symbol,
+                name=names.get(symbol, symbol),
+                current_price=float(row['latest']) if 'latest' in row and pd.notna(row['latest']) else None,
+                open_price=float(row['open']) if 'open' in row and pd.notna(row['open']) else None,
+                high_price=float(row['high']) if 'high' in row and pd.notna(row['high']) else None,
+                low_price=float(row['low']) if 'low' in row and pd.notna(row['low']) else None,
+                amount=amount,
+            )
+            if candidate is None:
+                continue
+            if amount is not None and amount < gateway.config['strategy']['min_turnover_amount']:
+                continue
+            gain = candidate['intraday_gain_pct']
+            if gain is not None and (gain < gateway.config['strategy']['min_intraday_gain_pct'] or gain > gateway.config['strategy']['max_intraday_gain_pct']):
+                continue
+            if candidate['tail_strength'] < gateway.config['strategy']['tail_strength_threshold']:
+                continue
+            results.append(candidate)
 
     results = sorted(results, key=lambda x: x['score'], reverse=True)[: gateway.config['strategy']['max_candidates']]
     out = {

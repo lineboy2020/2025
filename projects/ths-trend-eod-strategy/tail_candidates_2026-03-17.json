@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "generated_at": "2026-03-18T07:34:28.978882",
+  "trade_date": "2026-03-17",
+  "strategy": "trend_eod_realtime_v1",
+  "strategy_state": "tail_candidates_generated",
+  "candidate_count": 3,
+  "candidates": [
+    {
+      "symbol": "000420.SZ",
+      "name": "吉林化纤",
+      "score": 92.14,
+      "intraday_gain_pct": 7.45,
+      "tail_strength": 0.8036,
+      "amount": 3089165418.17,
+      "risk_tags": [
+        "涨幅过大谨慎追高"
+      ],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 5.48,
+        "stop_loss_price": 5.1,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 5.64,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 5.75,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 5.92,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000506.SZ",
+      "name": "招金黄金",
+      "score": 83.77,
+      "intraday_gain_pct": 4.88,
+      "tail_strength": 0.885,
+      "amount": 933063141.03,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 18.05,
+        "stop_loss_price": 16.79,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 18.59,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 18.95,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 19.49,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000537.SZ",
+      "name": "中绿电",
+      "score": 79.07,
+      "intraday_gain_pct": 4.01,
+      "tail_strength": 0.6748,
+      "amount": 2540322535.29,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 11.68,
+        "stop_loss_price": 10.86,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 12.03,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 12.26,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 12.61,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    }
+  ]
+}
