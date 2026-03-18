@@ -182,56 +182,26 @@ class EODFullUpdater:
         self.log(f"[1/6] 更新 qingxu.parquet (市场情绪数据)")
         self.log("=" * 60)
         try:
-            queries = {
-                'limit_up': f"{self.trade_date},涨停",
-                'limit_down': f"{self.trade_date},跌停",
-                'rise': f"{self.trade_date},上涨",
-                'fall': f"{self.trade_date},下跌"
+            from qingxu import update_market_emotion
+            result_df = update_market_emotion(
+                WORKSPACE_ROOT,
+                incremental=False,
+                use_wencai=True,
+                dates_to_fetch=[self.trade_date],
+            )
+            if result_df is None or result_df.empty:
+                raise RuntimeError('qingxu 真实计算结果为空')
+
+            today_df = result_df[result_df['tradeDate'].astype(str) == str(self.trade_date)]
+            if today_df.empty:
+                raise RuntimeError(f'qingxu 未产出目标日期 {self.trade_date} 的结果')
+
+            self.log(f"✅ 更新完成: {len(result_df)} 条历史数据，目标日期 {self.trade_date} 共 {len(today_df)} 条")
+            self.results['qingxu'] = {
+                'success': True,
+                'count': len(result_df),
+                'trade_date_count': len(today_df)
             }
-            counts = {}
-            wc = self._wc_downloader()
-            for key, query in queries.items():
-                try:
-                    raw_df = wc.download_wc_data(query)
-                    counts[key] = len(raw_df) if raw_df is not None else 0
-                except Exception as e:
-                    self.log(f"  ⚠️ {key} 查询失败: {e}")
-                    counts[key] = 0
-
-            total_count = counts['rise'] + counts['fall']
-            flat_count = max(0, 5100 - total_count)
-            total_count = counts['rise'] + counts['fall'] + flat_count
-
-            qingxu_path = self.data_dir / "qingxu.parquet"
-            df = pd.read_parquet(qingxu_path) if qingxu_path.exists() else pd.DataFrame()
-            trade_date_value = str(self.trade_date)
-            if not df.empty and 'tradeDate' in df.columns:
-                df['tradeDate'] = df['tradeDate'].astype(str)
-
-            new_row = {
-                'tradeDate': trade_date_value,
-                'rise_count': counts['rise'],
-                'fall_count': counts['fall'],
-                'limit_up_count': counts['limit_up'],
-                'limit_down_count': counts['limit_down'],
-                'limit_up_20pct': 0,
-                'limit_down_20pct': 0,
-                'limit_up_10pct': counts['limit_up'],
-                'limit_down_10pct': counts['limit_down'],
-                'explosion_count': 0,
-                'explosion_10pct': 0,
-                'explosion_20pct': 0,
-                'explosion_rate': 0.0,
-                'total_count': total_count,
-                'rise_ratio': counts['rise'] / total_count if total_count > 0 else 0,
-                'fall_ratio': counts['fall'] / total_count if total_count > 0 else 0
-            }
-            if not df.empty and 'tradeDate' in df.columns:
-                df = df[df['tradeDate'] != trade_date_value]
-            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-            df.to_parquet(qingxu_path, index=False)
-            self.log(f"✅ 更新完成: {len(df)} 条历史数据")
-            self.results['qingxu'] = {'success': True, 'count': len(df)}
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['qingxu'] = {'success': False, 'error': str(e)}
