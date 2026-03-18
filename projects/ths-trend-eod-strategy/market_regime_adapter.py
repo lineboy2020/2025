@@ -37,15 +37,15 @@ def get_market_emotion(date: str) -> Dict:
     }
 
 
-def classify_regime(date: str) -> Dict:
+def classify_regime(date: str, neutral_max_candidates: int = 1, risk_on_max_candidates: int = 2) -> Dict:
     emo = get_market_emotion(date)
     name = emo.get('emotion_name')
     if name in ('发酵期', '高潮期'):
         mode = 'risk_on'
-        max_candidates = 2
+        max_candidates = risk_on_max_candidates
     elif name in ('启动期',):
         mode = 'neutral'
-        max_candidates = 1
+        max_candidates = neutral_max_candidates
     else:
         mode = 'risk_off'
         max_candidates = 0

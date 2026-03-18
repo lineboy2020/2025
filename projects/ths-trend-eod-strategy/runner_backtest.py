@@ -124,7 +124,11 @@ def compute_market_regime(gateway: DataGateway, trade_date: str, overrides: Dict
 
 def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
     if overrides and overrides.get('use_market_emotion_filter'):
-        regime = classify_regime(trade_date)
+        regime = classify_regime(
+            trade_date,
+            neutral_max_candidates=int((overrides or {}).get('neutral_max_candidates') or 1),
+            risk_on_max_candidates=int((overrides or {}).get('risk_on_max_candidates') or ((overrides or {}).get('max_candidates') or 2)),
+        )
         if regime.get('regime_mode') == 'risk_off':
             return {
                 'date': trade_date,
@@ -244,6 +248,9 @@ def main():
     parser.add_argument('--regime-min-strong-ratio', type=float, default=None)
     parser.add_argument('--regime-max-weak-ratio', type=float, default=None)
     parser.add_argument('--scan-regime-grid', action='store_true')
+    parser.add_argument('--neutral-max-candidates', type=int, default=None)
+    parser.add_argument('--risk-on-max-candidates', type=int, default=None)
+    parser.add_argument('--scan-market-emotion-grid', action='store_true')
     args = parser.parse_args()
 
     gateway = DataGateway()
@@ -257,6 +264,8 @@ def main():
         'regime_min_avg_gain_pct': args.regime_min_avg_gain_pct,
         'regime_min_strong_ratio': args.regime_min_strong_ratio,
         'regime_max_weak_ratio': args.regime_max_weak_ratio,
+        'neutral_max_candidates': args.neutral_max_candidates,
+        'risk_on_max_candidates': args.risk_on_max_candidates,
     }
 
     if args.batch_start and args.batch_end and args.scan_grid:
@@ -333,6 +342,42 @@ def main():
             'grid_size': len(grid),
             'top_results': grid[:15],
             'bottom_results': grid[-15:],
+        }, ensure_ascii=False, indent=2))
+        return
+
+    if args.batch_start and args.batch_end and args.scan_market_emotion_grid:
+        con = duckdb.connect(gateway.duckdb_path, read_only=True)
+        trading_days = con.execute(
+            "select distinct trade_date from market_daily where trade_date >= ? and trade_date <= ? order by trade_date",
+            [args.batch_start, args.batch_end]
+        ).df()['trade_date'].astype(str).tolist()
+        con.close()
+        grid = []
+        for neutral_max in [1, 2]:
+            for risk_on_max in [2, 3]:
+                ov = {
+                    'max_intraday_gain_pct': 7.0,
+                    'tail_strength_threshold': 0.5,
+                    'min_turnover_amount': 5e8,
+                    'max_candidates': 2,
+                    'use_market_emotion_filter': True,
+                    'neutral_max_candidates': neutral_max,
+                    'risk_on_max_candidates': risk_on_max,
+                }
+                runs = [run_single_date(gateway, d, overrides=ov) for d in trading_days[:-1]]
+                agg = aggregate_runs(runs)
+                grid.append({
+                    'params': ov,
+                    'aggregate': agg,
+                    'score': score_aggregate(agg),
+                    'skipped_days': sum(1 for r in runs if r.get('skipped_by_regime_filter')),
+                })
+        grid = sorted(grid, key=lambda x: x['score'], reverse=True)
+        print(json.dumps({
+            'batch_start': args.batch_start,
+            'batch_end': args.batch_end,
+            'grid_size': len(grid),
+            'results': grid,
         }, ensure_ascii=False, indent=2))
         return
 
