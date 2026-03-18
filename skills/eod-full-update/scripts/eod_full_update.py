@@ -204,8 +204,12 @@ class EODFullUpdater:
 
             qingxu_path = self.data_dir / "qingxu.parquet"
             df = pd.read_parquet(qingxu_path) if qingxu_path.exists() else pd.DataFrame()
+            trade_date_value = str(self.trade_date)
+            if not df.empty and 'tradeDate' in df.columns:
+                df['tradeDate'] = df['tradeDate'].astype(str)
+
             new_row = {
-                'tradeDate': pd.Timestamp(self.trade_date),
+                'tradeDate': trade_date_value,
                 'rise_count': counts['rise'],
                 'fall_count': counts['fall'],
                 'limit_up_count': counts['limit_up'],
@@ -223,7 +227,7 @@ class EODFullUpdater:
                 'fall_ratio': counts['fall'] / total_count if total_count > 0 else 0
             }
             if not df.empty and 'tradeDate' in df.columns:
-                df = df[df['tradeDate'] != pd.Timestamp(self.trade_date)]
+                df = df[df['tradeDate'] != trade_date_value]
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
             df.to_parquet(qingxu_path, index=False)
             self.log(f"✅ 更新完成: {len(df)} 条历史数据")
