@@ -378,25 +378,47 @@ class EODFullUpdater:
         self.log("[5/6] 更新 longhubang.parquet (龙虎榜数据)")
         self.log("=" * 60)
         try:
-            raw_df = self._wc_downloader().download_wc_data(f"{self.trade_date},龙虎榜")
-            if raw_df is None or raw_df.empty:
-                self.log("⚠️ 无龙虎榜数据")
-                self.results['longhubang'] = {'success': True, 'count': 0}
-                return
+            from get_longhubang import DailyLongHuBangCollector
+            collector = DailyLongHuBangCollector()
+            try:
+                dt = pd.to_datetime(self.trade_date).to_pydatetime()
+                std_df = collector.fetch_one_day(dt)
+                if std_df is None or std_df.empty:
+                    self.log("⚠️ 无龙虎榜数据")
+                    self.results['longhubang'] = {'success': True, 'count': 0}
+                    return
 
-            raw_df['trade_date'] = str(self.trade_date)
-            longhubang_path = self.data_dir / "longhubang.parquet"
-            if longhubang_path.exists():
-                existing = pd.read_parquet(longhubang_path)
-                if 'trade_date' in existing.columns:
-                    existing['trade_date'] = existing['trade_date'].astype(str)
-                    existing = existing[existing['trade_date'] != str(self.trade_date)]
-                raw_df = pd.concat([existing, raw_df], ignore_index=True)
+                std_df = std_df.copy()
+                std_df['trade_date'] = pd.to_datetime(std_df['trade_date']).dt.strftime('%Y-%m-%d')
 
-            raw_df.to_parquet(longhubang_path, index=False)
-            today_count = len(raw_df[raw_df['trade_date'] == str(self.trade_date)])
-            self.log(f"✅ 更新完成: {today_count} 条数据")
-            self.results['longhubang'] = {'success': True, 'count': today_count}
+                longhubang_path = self.data_dir / "longhubang.parquet"
+                if longhubang_path.exists():
+                    try:
+                        existing = pd.read_parquet(longhubang_path)
+                        if 'trade_date' in existing.columns:
+                            existing['trade_date'] = pd.to_datetime(existing['trade_date'], errors='coerce').dt.strftime('%Y-%m-%d')
+                            existing = existing[existing['trade_date'] != str(self.trade_date)].copy()
+                            keep_cols = [c for c in existing.columns if c in std_df.columns]
+                            existing = existing[keep_cols] if keep_cols else pd.DataFrame()
+                        else:
+                            existing = pd.DataFrame()
+                    except Exception:
+                        existing = pd.DataFrame()
+                    merged = pd.concat([existing, std_df], ignore_index=True, sort=False)
+                else:
+                    merged = std_df
+
+                merged = merged.drop_duplicates(subset=['trade_date', 'stock_code', 'board_type', 'reason'], keep='last')
+                merged = merged.sort_values(['trade_date', 'stock_code']).reset_index(drop=True)
+                merged.to_parquet(longhubang_path, index=False)
+                today_count = len(merged[merged['trade_date'].astype(str) == str(self.trade_date)])
+                self.log(f"✅ 更新完成: {today_count} 条数据，字段数 {len(merged.columns)}")
+                self.results['longhubang'] = {'success': True, 'count': today_count, 'columns': list(merged.columns)}
+            finally:
+                try:
+                    collector.logout()
+                except Exception:
+                    pass
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['longhubang'] = {'success': False, 'error': str(e)}
