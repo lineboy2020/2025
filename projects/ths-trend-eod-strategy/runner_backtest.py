@@ -76,7 +76,7 @@ def build_history_candidates(gateway: DataGateway, trade_date: str, overrides: D
     return results
 
 
-def compute_market_regime(gateway: DataGateway, trade_date: str) -> Dict:
+def compute_market_regime(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
     names = load_universe(gateway)
     symbols = list(names.keys())
     history_map = gateway.get_history(symbols, trade_date, trade_date)
@@ -104,17 +104,25 @@ def compute_market_regime(gateway: DataGateway, trade_date: str) -> Dict:
     avg_gain = round(sum(gains) / total, 4) if total else 0.0
     strong_ratio = round(strong_count / total, 4) if total else 0.0
     weak_ratio = round(weak_count / total, 4) if total else 0.0
+    regime_cfg = {
+        'regime_min_avg_gain_pct': 0.5,
+        'regime_min_strong_ratio': 0.08,
+        'regime_max_weak_ratio': 0.12,
+    }
+    if overrides:
+        regime_cfg.update({k: v for k, v in overrides.items() if v is not None})
     return {
         'total': total,
         'avg_gain_pct': avg_gain,
         'strong_ratio': strong_ratio,
         'weak_ratio': weak_ratio,
-        'risk_on': avg_gain >= 0.5 and strong_ratio >= 0.08 and weak_ratio <= 0.12,
+        'thresholds': regime_cfg,
+        'risk_on': avg_gain >= regime_cfg['regime_min_avg_gain_pct'] and strong_ratio >= regime_cfg['regime_min_strong_ratio'] and weak_ratio <= regime_cfg['regime_max_weak_ratio'],
     }
 
 
 def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
-    regime = compute_market_regime(gateway, trade_date)
+    regime = compute_market_regime(gateway, trade_date, overrides=overrides)
     if overrides and overrides.get('use_regime_filter') and not regime.get('risk_on'):
         return {
             'date': trade_date,
@@ -214,6 +222,10 @@ def main():
     parser.add_argument('--max-candidates', type=int, default=None)
     parser.add_argument('--scan-grid', action='store_true')
     parser.add_argument('--use-regime-filter', action='store_true')
+    parser.add_argument('--regime-min-avg-gain-pct', type=float, default=None)
+    parser.add_argument('--regime-min-strong-ratio', type=float, default=None)
+    parser.add_argument('--regime-max-weak-ratio', type=float, default=None)
+    parser.add_argument('--scan-regime-grid', action='store_true')
     args = parser.parse_args()
 
     gateway = DataGateway()
@@ -223,6 +235,9 @@ def main():
         'min_turnover_amount': args.min_turnover_amount,
         'max_candidates': args.max_candidates,
         'use_regime_filter': args.use_regime_filter,
+        'regime_min_avg_gain_pct': args.regime_min_avg_gain_pct,
+        'regime_min_strong_ratio': args.regime_min_strong_ratio,
+        'regime_max_weak_ratio': args.regime_max_weak_ratio,
     }
 
     if args.batch_start and args.batch_end and args.scan_grid:
@@ -257,6 +272,48 @@ def main():
             'grid_size': len(grid),
             'top_results': grid[:10],
             'bottom_results': grid[-10:],
+        }, ensure_ascii=False, indent=2))
+        return
+
+    if args.batch_start and args.batch_end and args.scan_regime_grid:
+        con = duckdb.connect(gateway.duckdb_path, read_only=True)
+        trading_days = con.execute(
+            "select distinct trade_date from market_daily where trade_date >= ? and trade_date <= ? order by trade_date",
+            [args.batch_start, args.batch_end]
+        ).df()['trade_date'].astype(str).tolist()
+        con.close()
+        grid = []
+        base_params = {
+            'max_intraday_gain_pct': 7.0,
+            'tail_strength_threshold': 0.5,
+            'min_turnover_amount': 5e8,
+            'max_candidates': 2,
+            'use_regime_filter': True,
+        }
+        for min_avg in [0.0, 0.1, 0.2, 0.3, 0.5]:
+            for min_strong in [0.03, 0.04, 0.05, 0.06, 0.08]:
+                for max_weak in [0.10, 0.12, 0.15]:
+                    ov = dict(base_params)
+                    ov.update({
+                        'regime_min_avg_gain_pct': min_avg,
+                        'regime_min_strong_ratio': min_strong,
+                        'regime_max_weak_ratio': max_weak,
+                    })
+                    runs = [run_single_date(gateway, d, overrides=ov) for d in trading_days[:-1]]
+                    agg = aggregate_runs(runs)
+                    grid.append({
+                        'params': ov,
+                        'aggregate': agg,
+                        'score': score_aggregate(agg),
+                        'skipped_days': sum(1 for r in runs if r.get('skipped_by_regime_filter')),
+                    })
+        grid = sorted(grid, key=lambda x: x['score'], reverse=True)
+        print(json.dumps({
+            'batch_start': args.batch_start,
+            'batch_end': args.batch_end,
+            'grid_size': len(grid),
+            'top_results': grid[:15],
+            'bottom_results': grid[-15:],
         }, ensure_ascii=False, indent=2))
         return
 
