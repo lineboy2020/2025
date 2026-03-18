@@ -1,0 +1,55 @@
+{
+  "project": {
+    "name": "ths-etf-t0-strategy",
+    "version": "0.1.0",
+    "timezone": "Asia/Shanghai"
+  },
+  "storage": {
+    "primary": "duckdb",
+    "duckdb_path": "/root/.openclaw/workspace/data/db/kline_eod.duckdb",
+    "private_parquet_dir": "/root/.openclaw/workspace/projects/ths-etf-t0-strategy/data"
+  },
+  "data_sources": {
+    "history": {
+      "primary": "duckdb",
+      "fallback": ["ths_sdk", "ths_http"],
+      "allow_intraday_sdk": false
+    },
+    "realtime": {
+      "primary": "ths_http",
+      "fallback": ["akshare"],
+      "allow_sdk": false
+    },
+    "snapshot": {
+      "primary": "ths_http",
+      "fallback": [],
+      "allow_sdk": false
+    },
+    "hf": {
+      "primary": "ths_http",
+      "fallback": [],
+      "allow_sdk": false
+    }
+  },
+  "strategy": {
+    "name": "etf_t0_v1",
+    "mode": "intraday_t0",
+    "symbols": ["510300.SH", "510500.SH", "510050.SH"],
+    "ma_window": 20,
+    "min_intraday_move": 0.003,
+    "dip_buy_threshold": 0.005,
+    "rebound_sell_threshold": 0.005,
+    "take_profit": [0.01, 0.02],
+    "stop_loss": 0.01
+  },
+  "analyzer": {
+    "mode": "light",
+    "grid_search_enabled": true,
+    "max_parameter_sets": 30
+  },
+  "notification": {
+    "channels": ["console", "markdown", "qq", "dingtalk"],
+    "dedupe": true,
+    "cooldown_minutes": 10
+  }
+}
