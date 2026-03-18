@@ -11,6 +11,7 @@ import duckdb
 
 from analyzer import summarize_backtest_results
 from data_gateway import DataGateway
+from market_regime_adapter import classify_regime
 from strategy_logic import evaluate_tail_candidate
 
 ROOT = Path(__file__).resolve().parent
@@ -122,18 +123,34 @@ def compute_market_regime(gateway: DataGateway, trade_date: str, overrides: Dict
 
 
 def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
-    regime = compute_market_regime(gateway, trade_date, overrides=overrides)
-    if overrides and overrides.get('use_regime_filter') and not regime.get('risk_on'):
-        return {
-            'date': trade_date,
-            'candidate_count': 0,
-            'evaluated_count': 0,
-            'summary': summarize_backtest_results([]),
-            'results': [],
-            'regime': regime,
-            'skipped_by_regime_filter': True,
-        }
-    candidates = build_history_candidates(gateway, trade_date, overrides=overrides)
+    if overrides and overrides.get('use_market_emotion_filter'):
+        regime = classify_regime(trade_date)
+        if regime.get('regime_mode') == 'risk_off':
+            return {
+                'date': trade_date,
+                'candidate_count': 0,
+                'evaluated_count': 0,
+                'summary': summarize_backtest_results([]),
+                'results': [],
+                'regime': regime,
+                'skipped_by_regime_filter': True,
+            }
+        emotion_overrides = dict(overrides or {})
+        emotion_overrides['max_candidates'] = regime.get('regime_max_candidates', overrides.get('max_candidates', 2))
+        candidates = build_history_candidates(gateway, trade_date, overrides=emotion_overrides)
+    else:
+        regime = compute_market_regime(gateway, trade_date, overrides=overrides)
+        if overrides and overrides.get('use_regime_filter') and not regime.get('risk_on'):
+            return {
+                'date': trade_date,
+                'candidate_count': 0,
+                'evaluated_count': 0,
+                'summary': summarize_backtest_results([]),
+                'results': [],
+                'regime': regime,
+                'skipped_by_regime_filter': True,
+            }
+        candidates = build_history_candidates(gateway, trade_date, overrides=overrides)
     if not candidates:
         return {
             'date': trade_date,
@@ -222,6 +239,7 @@ def main():
     parser.add_argument('--max-candidates', type=int, default=None)
     parser.add_argument('--scan-grid', action='store_true')
     parser.add_argument('--use-regime-filter', action='store_true')
+    parser.add_argument('--use-market-emotion-filter', action='store_true')
     parser.add_argument('--regime-min-avg-gain-pct', type=float, default=None)
     parser.add_argument('--regime-min-strong-ratio', type=float, default=None)
     parser.add_argument('--regime-max-weak-ratio', type=float, default=None)
@@ -235,6 +253,7 @@ def main():
         'min_turnover_amount': args.min_turnover_amount,
         'max_candidates': args.max_candidates,
         'use_regime_filter': args.use_regime_filter,
+        'use_market_emotion_filter': args.use_market_emotion_filter,
         'regime_min_avg_gain_pct': args.regime_min_avg_gain_pct,
         'regime_min_strong_ratio': args.regime_min_strong_ratio,
         'regime_max_weak_ratio': args.regime_max_weak_ratio,

@@ -1,0 +1,759 @@
+{
+  "batch_start": "2026-03-02",
+  "batch_end": "2026-03-16",
+  "grid_size": 75,
+  "top_results": [
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.0,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.0,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.0,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.1,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.1,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.1,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.2,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.2,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.2,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.08,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 2,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 4.0,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 1,
+        "positive_days": 1,
+        "day_win_rate": 1.0
+      },
+      "score": 26.4,
+      "skipped_days": 9
+    }
+  ],
+  "bottom_results": [
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.3,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.03,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.03,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.03,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.04,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.04,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.04,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.05,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.05,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.05,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.1
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.12
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_regime_filter": true,
+        "regime_min_avg_gain_pct": 0.5,
+        "regime_min_strong_ratio": 0.06,
+        "regime_max_weak_ratio": 0.15
+      },
+      "aggregate": {
+        "total": 4,
+        "win_count": 2,
+        "stoploss_count": 0,
+        "avg_return_pct": 0.905,
+        "tp_hit_count": 2,
+        "total_days": 10,
+        "traded_days": 2,
+        "positive_days": 1,
+        "day_win_rate": 0.5
+      },
+      "score": 9.02,
+      "skipped_days": 8
+    }
+  ]
+}
