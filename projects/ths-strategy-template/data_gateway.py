@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
@@ -79,3 +80,22 @@ class DataGateway:
 
     def load_candidate_pool(self, path: str) -> Dict:
         return json.loads(Path(path).read_text(encoding='utf-8'))
+
+    def resolve_latest_candidate_pool(self, reports_dir: str) -> Dict:
+        base = Path(reports_dir)
+        files = sorted(base.glob('live_candidates_*.json'))
+        dated = []
+        for f in files:
+            stem = f.stem.replace('live_candidates_', '')
+            try:
+                d = datetime.strptime(stem, '%Y-%m-%d').date()
+                payload = self.load_candidate_pool(str(f))
+                count = int(payload.get('candidate_count') or len(payload.get('candidates') or []))
+                dated.append((d, f, count))
+            except Exception:
+                continue
+        dated.sort(key=lambda x: x[0], reverse=True)
+        for _, f, count in dated:
+            if count > 0:
+                return self.load_candidate_pool(str(f))
+        return {'status': 'empty', 'candidate_count': 0, 'candidates': []}
