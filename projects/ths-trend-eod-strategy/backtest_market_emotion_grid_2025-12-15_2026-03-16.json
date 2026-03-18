@@ -1,0 +1,103 @@
+{
+  "batch_start": "2025-12-15",
+  "batch_end": "2026-03-16",
+  "grid_size": 4,
+  "results": [
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_market_emotion_filter": true,
+        "neutral_max_candidates": 2,
+        "risk_on_max_candidates": 3
+      },
+      "aggregate": {
+        "total": 68,
+        "win_count": 43,
+        "stoploss_count": 3,
+        "avg_return_pct": 1.9124,
+        "tp_hit_count": 33,
+        "total_days": 57,
+        "traded_days": 28,
+        "positive_days": 20,
+        "day_win_rate": 0.7143
+      },
+      "score": 18.9926,
+      "skipped_days": 28
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_market_emotion_filter": true,
+        "neutral_max_candidates": 2,
+        "risk_on_max_candidates": 2
+      },
+      "aggregate": {
+        "total": 56,
+        "win_count": 36,
+        "stoploss_count": 2,
+        "avg_return_pct": 1.9175,
+        "tp_hit_count": 27,
+        "total_days": 57,
+        "traded_days": 28,
+        "positive_days": 21,
+        "day_win_rate": 0.75
+      },
+      "score": 18.97,
+      "skipped_days": 28
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_market_emotion_filter": true,
+        "neutral_max_candidates": 1,
+        "risk_on_max_candidates": 2
+      },
+      "aggregate": {
+        "total": 40,
+        "win_count": 25,
+        "stoploss_count": 1,
+        "avg_return_pct": 2.0072,
+        "tp_hit_count": 21,
+        "total_days": 57,
+        "traded_days": 28,
+        "positive_days": 18,
+        "day_win_rate": 0.6429
+      },
+      "score": 17.8578,
+      "skipped_days": 28
+    },
+    {
+      "params": {
+        "max_intraday_gain_pct": 7.0,
+        "tail_strength_threshold": 0.5,
+        "min_turnover_amount": 500000000.0,
+        "max_candidates": 2,
+        "use_market_emotion_filter": true,
+        "neutral_max_candidates": 1,
+        "risk_on_max_candidates": 3
+      },
+      "aggregate": {
+        "total": 52,
+        "win_count": 32,
+        "stoploss_count": 2,
+        "avg_return_pct": 1.9798,
+        "tp_hit_count": 27,
+        "total_days": 57,
+        "traded_days": 28,
+        "positive_days": 17,
+        "day_win_rate": 0.6071
+      },
+      "score": 17.7902,
+      "skipped_days": 28
+    }
+  ]
+}

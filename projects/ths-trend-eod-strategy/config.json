@@ -35,13 +35,23 @@
     "name": "trend_eod_realtime_v1",
     "mode": "tail_intraday_buy_nextday_sell",
     "buy_window": "14:30-14:50",
-    "max_candidates": 3,
-    "min_turnover_amount": 200000000,
-    "max_intraday_gain_pct": 8.0,
+    "max_candidates": 2,
+    "min_turnover_amount": 500000000,
+    "max_intraday_gain_pct": 7.0,
     "min_intraday_gain_pct": -2.0,
-    "tail_strength_threshold": 0.2,
+    "tail_strength_threshold": 0.5,
     "stop_loss": 0.07,
     "take_profit": [0.03, 0.05, 0.08]
+  },
+  "market_regime": {
+    "provider": "market-emotion",
+    "enabled": true,
+    "risk_on_emotions": ["发酵期", "高潮期"],
+    "neutral_emotions": ["启动期"],
+    "risk_off_emotions": ["冰点期", "退潮期"],
+    "risk_on_max_candidates": 2,
+    "neutral_max_candidates": 2,
+    "risk_off_max_candidates": 0
   },
   "notification": {
     "channels": ["console", "markdown", "qq", "dingtalk"],

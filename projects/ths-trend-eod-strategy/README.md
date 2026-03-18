@@ -9,11 +9,23 @@
 - **明天按规则卖出**
 
 ## 当前版本目标
-先建立第一版可维护骨架：
+当前默认版本已固化为 **V1 平衡版**：
 - 实时尾盘候选筛选入口
 - 历史回测入口
 - DuckDB + THS HTTP 数据入口
 - 风险标签 / 买入计划 / 次日卖出规则
+- `market-emotion` 市场环境分层
+
+## 当前默认 V1（平衡版）
+- 基础参数：
+  - `max_candidates = 2`
+  - `min_turnover_amount = 5e8`
+  - `max_intraday_gain_pct = 7.0`
+  - `tail_strength_threshold = 0.5`
+- 市场环境：
+  - 发酵期 / 高潮期 → 做 2 只
+  - 启动期 → 做 2 只
+  - 冰点期 / 退潮期 → 不做
 
 ## 文件结构
 1. `README.md`
