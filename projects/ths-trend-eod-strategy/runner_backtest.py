@@ -39,12 +39,14 @@ def load_universe(gateway: DataGateway) -> Dict[str, str]:
     return dict(zip(stock_basic['symbol'], stock_basic['name']))
 
 
-def build_history_candidates(gateway: DataGateway, trade_date: str) -> List[Dict]:
+def build_history_candidates(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> List[Dict]:
     names = load_universe(gateway)
     symbols = list(names.keys())
     history_map = gateway.get_history(symbols, trade_date, trade_date)
     results = []
-    cfg = gateway.config['strategy']
+    cfg = dict(gateway.config['strategy'])
+    if overrides:
+        cfg.update({k: v for k, v in overrides.items() if v is not None})
     for symbol in symbols:
         df = history_map.get(symbol)
         if df is None or df.empty:
@@ -70,12 +72,12 @@ def build_history_candidates(gateway: DataGateway, trade_date: str) -> List[Dict
         if candidate['tail_strength'] < cfg['tail_strength_threshold']:
             continue
         results.append(candidate)
-    results = sorted(results, key=lambda x: x['score'], reverse=True)[: gateway.config['strategy']['max_candidates']]
+    results = sorted(results, key=lambda x: x['score'], reverse=True)[: cfg['max_candidates']]
     return results
 
 
-def run_single_date(gateway: DataGateway, trade_date: str) -> Dict:
-    candidates = build_history_candidates(gateway, trade_date)
+def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
+    candidates = build_history_candidates(gateway, trade_date, overrides=overrides)
     if not candidates:
         return {
             'date': trade_date,
@@ -140,15 +142,71 @@ def aggregate_runs(runs: List[Dict]) -> Dict:
     return base
 
 
+def score_aggregate(agg: Dict) -> float:
+    return round(
+        (agg.get('avg_return_pct', 0.0) * 4)
+        + (agg.get('day_win_rate', 0.0) * 10)
+        + (agg.get('tp_hit_count', 0) * 0.2)
+        - (agg.get('stoploss_count', 0) * 0.8),
+        4,
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description='趋势尾盘历史回测入口')
     parser.add_argument('--date', default='')
     parser.add_argument('--candidate-file', default='')
     parser.add_argument('--batch-start', default='')
     parser.add_argument('--batch-end', default='')
+    parser.add_argument('--max-intraday-gain-pct', type=float, default=None)
+    parser.add_argument('--tail-strength-threshold', type=float, default=None)
+    parser.add_argument('--min-turnover-amount', type=float, default=None)
+    parser.add_argument('--max-candidates', type=int, default=None)
+    parser.add_argument('--scan-grid', action='store_true')
     args = parser.parse_args()
 
     gateway = DataGateway()
+    overrides = {
+        'max_intraday_gain_pct': args.max_intraday_gain_pct,
+        'tail_strength_threshold': args.tail_strength_threshold,
+        'min_turnover_amount': args.min_turnover_amount,
+        'max_candidates': args.max_candidates,
+    }
+
+    if args.batch_start and args.batch_end and args.scan_grid:
+        con = duckdb.connect(gateway.duckdb_path, read_only=True)
+        trading_days = con.execute(
+            "select distinct trade_date from market_daily where trade_date >= ? and trade_date <= ? order by trade_date",
+            [args.batch_start, args.batch_end]
+        ).df()['trade_date'].astype(str).tolist()
+        con.close()
+        grid = []
+        for max_gain in [6.5, 7.0, 8.0]:
+            for tail_strength in [0.4, 0.5, 0.6]:
+                for min_amount in [2e8, 5e8, 8e8]:
+                    for max_candidates in [2, 3]:
+                        ov = {
+                            'max_intraday_gain_pct': max_gain,
+                            'tail_strength_threshold': tail_strength,
+                            'min_turnover_amount': min_amount,
+                            'max_candidates': max_candidates,
+                        }
+                        runs = [run_single_date(gateway, d, overrides=ov) for d in trading_days[:-1]]
+                        agg = aggregate_runs(runs)
+                        grid.append({
+                            'params': ov,
+                            'aggregate': agg,
+                            'score': score_aggregate(agg),
+                        })
+        grid = sorted(grid, key=lambda x: x['score'], reverse=True)
+        print(json.dumps({
+            'batch_start': args.batch_start,
+            'batch_end': args.batch_end,
+            'grid_size': len(grid),
+            'top_results': grid[:10],
+            'bottom_results': grid[-10:],
+        }, ensure_ascii=False, indent=2))
+        return
 
     if args.batch_start and args.batch_end:
         con = duckdb.connect(gateway.duckdb_path, read_only=True)
@@ -157,11 +215,12 @@ def main():
             [args.batch_start, args.batch_end]
         ).df()['trade_date'].astype(str).tolist()
         con.close()
-        runs = [run_single_date(gateway, d) for d in trading_days[:-1]]
+        runs = [run_single_date(gateway, d, overrides=overrides) for d in trading_days[:-1]]
         print(json.dumps({
             'batch_start': args.batch_start,
             'batch_end': args.batch_end,
             'run_count': len(runs),
+            'overrides': overrides,
             'aggregate': aggregate_runs(runs),
             'runs': runs,
         }, ensure_ascii=False, indent=2))
