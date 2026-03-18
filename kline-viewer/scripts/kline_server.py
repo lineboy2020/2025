@@ -159,18 +159,16 @@ FIELD_COMMENTS = {
     },
     "longhubang": {
         "trade_date": "交易日期",
-        "stock_code": "股票代码",
-        "stock_name": "股票名称",
-        "net_amount": "龙虎榜净额",
-        "buy_amount": "龙虎榜买入额",
-        "sell_amount": "龙虎榜卖出额",
-        "reason": "上榜原因",
-        "board_type": "榜单类型",
-        "detail": "明细详情",
+        "stock_code": "股票代码（如 000001.SZ）",
+        "stock_name": "股票简称",
+        "net_amount": "当日龙虎榜净额",
+        "buy_amount": "当日龙虎榜买入金额",
+        "sell_amount": "当日龙虎榜卖出金额",
+        "reason": "当日上榜原因",
+        "board_type": "龙虎榜上榜类型",
+        "detail": "龙虎榜明细/查看明细入口",
         "seq_no": "序号",
-        "collect_time": "采集时间",
-        "股票代码": "股票代码（中文字段）",
-        "股票简称": "股票简称",
+        "collect_time": "本地采集时间",
     }
 }
 
