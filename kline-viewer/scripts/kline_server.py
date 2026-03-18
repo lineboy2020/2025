@@ -97,7 +97,97 @@ def _frame_preview(df: pd.DataFrame, limit: int = 200) -> List[Dict[str, Any]]:
     return [{k: _safe_value(v) for k, v in row.items()} for row in preview.to_dict('records')]
 
 
-def build_dataset_summary(name: str, limit: int = 200) -> Dict[str, Any]:
+FIELD_COMMENTS = {
+    "qingxu": {
+        "tradeDate": "交易日期",
+        "rise_count": "上涨家数",
+        "fall_count": "下跌家数",
+        "limit_up_count": "涨停家数",
+        "limit_down_count": "跌停家数",
+        "limit_up_20pct": "20cm涨停家数",
+        "limit_down_20pct": "20cm跌停家数",
+        "limit_up_10pct": "10cm涨停家数",
+        "limit_down_10pct": "10cm跌停家数",
+        "explosion_count": "炸板家数",
+        "explosion_10pct": "10cm炸板家数",
+        "explosion_20pct": "20cm炸板家数",
+        "explosion_rate": "炸板率",
+        "total_count": "样本总数/统计总家数",
+        "rise_ratio": "上涨占比",
+        "fall_ratio": "下跌占比",
+    },
+    "zhishu": {
+        "tradeDate": "交易日期",
+        "tradeTime": "交易时间",
+        "preClose": "前收盘价",
+        "open": "开盘价",
+        "high": "最高价",
+        "low": "最低价",
+        "latest": "最新价/现价",
+        "changeRatio": "涨跌幅",
+        "amount": "成交额",
+        "volume": "成交量",
+        "riseCount": "上涨家数",
+        "fallCount": "下跌家数",
+        "upLimitCount": "涨停家数",
+        "downLimitCount": "跌停家数",
+        "index_code": "指数代码",
+        "stock_code": "证券代码",
+        "close": "收盘价",
+        "floatCapitalOfAShares": "A股流通市值",
+        "symbol": "标准代码",
+    },
+    "limit_up": {
+        "symbol": "标准代码",
+        "name": "股票名称",
+        "stock_code": "原始股票代码",
+        "trade_date": "交易日期",
+    },
+    "longhubang": {
+        "trade_date": "交易日期",
+        "stock_code": "股票代码",
+        "stock_name": "股票名称",
+        "net_amount": "龙虎榜净额",
+        "buy_amount": "龙虎榜买入额",
+        "sell_amount": "龙虎榜卖出额",
+        "reason": "上榜原因",
+        "board_type": "榜单类型",
+        "detail": "明细详情",
+        "seq_no": "序号",
+        "collect_time": "采集时间",
+        "股票代码": "股票代码（中文字段）",
+        "股票简称": "股票简称",
+    }
+}
+
+
+def enrich_dynamic_field_comments(dataset: str, columns: List[str]) -> Dict[str, str]:
+    comments = dict(FIELD_COMMENTS.get(dataset, {}))
+    for col in columns:
+        if col in comments:
+            continue
+        if col.startswith('涨停[') and col.endswith(']'):
+            comments[col] = f"对应日期的涨停标记（{col[3:-1]}）"
+        elif col.startswith('营业部交易日期['):
+            comments[col] = f"对应日期的营业部交易日期（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('当日龙虎榜净额['):
+            comments[col] = f"对应日期的龙虎榜净额（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('当日龙虎榜买入金额['):
+            comments[col] = f"对应日期的龙虎榜买入金额（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('当日龙虎榜卖出金额['):
+            comments[col] = f"对应日期的龙虎榜卖出金额（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('当日上榜原因['):
+            comments[col] = f"对应日期的上榜原因（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('龙虎榜上榜类型['):
+            comments[col] = f"对应日期的龙虎榜上榜类型（{col[col.find('[')+1:-1]}）"
+        elif col.startswith('龙虎榜['):
+            comments[col] = f"对应日期的龙虎榜明细入口标记（{col[col.find('[')+1:-1]}）"
+        else:
+            comments[col] = comments.get(col, f"字段 {col} 的含义待补充")
+    return comments
+
+
+def build_dataset_summary(name: str, limit: int = 200, selected_date: Optional[str] = None) -> Dict[str, Any]:
     path = get_data_source_path(name)
     if not path.exists():
         return {
@@ -112,19 +202,25 @@ def build_dataset_summary(name: str, limit: int = 200) -> Dict[str, Any]:
     latest_date = None
     latest_rows = len(df)
     latest_preview_df = df.copy()
+    selected_row_count = None
+    available_dates = []
 
     if date_col and not df.empty:
         date_series = pd.to_datetime(df[date_col], errors='coerce')
         valid = date_series.notna()
         if valid.any():
+            available_dates = sorted(date_series[valid].dt.strftime('%Y-%m-%d').unique().tolist(), reverse=True)
             latest_ts = date_series[valid].max()
             latest_date = latest_ts.strftime('%Y-%m-%d')
-            latest_mask = date_series.dt.strftime('%Y-%m-%d') == latest_date
-            latest_preview_df = df.loc[latest_mask].copy()
-            latest_rows = len(latest_preview_df)
+            target_date = selected_date or latest_date
+            selected_mask = date_series.dt.strftime('%Y-%m-%d') == target_date
+            latest_preview_df = df.loc[selected_mask].copy()
+            latest_rows = len(df.loc[date_series.dt.strftime('%Y-%m-%d') == latest_date])
+            selected_row_count = len(latest_preview_df)
 
     null_counts = {col: int(df[col].isna().sum()) for col in columns}
-    sample_rows = _frame_preview(latest_preview_df if latest_date else df, limit=limit)
+    field_comments = enrich_dynamic_field_comments(name, columns)
+    sample_rows = _frame_preview(latest_preview_df if (latest_date or selected_date) else df, limit=limit)
 
     return {
         'success': True,
@@ -135,6 +231,10 @@ def build_dataset_summary(name: str, limit: int = 200) -> Dict[str, Any]:
         'date_column': date_col,
         'latest_date': latest_date,
         'latest_row_count': int(latest_rows),
+        'selected_date': selected_date or latest_date,
+        'selected_row_count': int(selected_row_count if selected_row_count is not None else latest_rows),
+        'available_dates': available_dates,
+        'field_comments': field_comments,
         'null_counts': null_counts,
         'sample_rows': sample_rows,
     }
@@ -629,9 +729,9 @@ async def api_data_check_datasets():
 
 
 @app.get("/api/data-check/summary/{dataset}")
-async def api_data_check_summary(dataset: str, limit: int = Query(200, ge=1, le=1000)):
+async def api_data_check_summary(dataset: str, limit: int = Query(200, ge=1, le=1000), date: Optional[str] = Query(default=None)):
     try:
-        summary = build_dataset_summary(dataset, limit=limit)
+        summary = build_dataset_summary(dataset, limit=limit, selected_date=date)
         status_code = 200 if summary.get('success') else 404
         return JSONResponse(content=summary, status_code=status_code)
     except KeyError:
