@@ -42,14 +42,6 @@ def load_ths_downloader():
         return None
 
 
-def load_data_fetcher():
-    try:
-        from data_fetcher import DataFetcher
-        return DataFetcher()
-    except Exception:
-        return None
-
-
 def get_realtime_quotes(codes: List[str]) -> pd.DataFrame:
     downloader = load_ths_downloader()
     if downloader is None:
@@ -176,62 +168,68 @@ def build_intraday_summary(result: Dict) -> str:
     return f"{result.get('symbol')} {result.get('name')} | 状态={state} | 现价={price} | 收益={ret}% | 资金={capital} | 动作={action}"
 
 
+def summarize_snapshot_df(df: pd.DataFrame) -> Dict:
+    if df is None or df.empty:
+        return {}
+    amt_col = 'amount' if 'amount' in df.columns else ('amt' if 'amt' in df.columns else None)
+    vol_col = 'volume' if 'volume' in df.columns else ('vol' if 'vol' in df.columns else None)
+    price_col = None
+    for c in ['latest', 'price', 'lastPrice', 'close', '成交价']:
+        if c in df.columns:
+            price_col = c
+            break
+    dir_col = None
+    for c in ['dealDirection', 'direction', 'bsFlag', '买卖方向']:
+        if c in df.columns:
+            dir_col = c
+            break
+    buy_cols = [c for c in df.columns if 'buy' in str(c).lower() or 'bid' in str(c).lower()]
+    sell_cols = [c for c in df.columns if 'sell' in str(c).lower() or 'ask' in str(c).lower()]
+    summary = {
+        'snapshot_rows': int(len(df)),
+        'snapshot_amount_sum': float(pd.to_numeric(df[amt_col], errors='coerce').fillna(0).sum()) if amt_col else None,
+        'snapshot_volume_sum': float(pd.to_numeric(df[vol_col], errors='coerce').fillna(0).sum()) if vol_col else None,
+        'snapshot_price_last': float(pd.to_numeric(df[price_col], errors='coerce').dropna().iloc[-1]) if price_col and not pd.to_numeric(df[price_col], errors='coerce').dropna().empty else None,
+        'buy_cols_detected': buy_cols[:5],
+        'sell_cols_detected': sell_cols[:5],
+    }
+    if amt_col and len(df) >= 20:
+        tail = df.tail(min(30, len(df))).copy()
+        head = df.head(min(30, len(df))).copy()
+        summary['snapshot_amt_tail_sum'] = float(pd.to_numeric(tail[amt_col], errors='coerce').fillna(0).sum())
+        summary['snapshot_amt_head_sum'] = float(pd.to_numeric(head[amt_col], errors='coerce').fillna(0).sum())
+    if dir_col and amt_col:
+        ds = pd.to_numeric(df[dir_col], errors='coerce')
+        amt = pd.to_numeric(df[amt_col], errors='coerce').fillna(0)
+        summary['direction_nonnull_count'] = int(ds.notna().sum())
+        buy_mask = ds.isin([5])
+        sell_mask = ds.isin([1])
+        neutral_mask = ds.isin([15])
+        summary['buy_amount_sum'] = float(amt[buy_mask].sum())
+        summary['sell_amount_sum'] = float(amt[sell_mask].sum())
+        summary['neutral_amount_sum'] = float(amt[neutral_mask].sum())
+        denom = float(amt[buy_mask].sum() + amt[sell_mask].sum())
+        summary['buy_sell_imbalance'] = round((float(amt[buy_mask].sum()) - float(amt[sell_mask].sum())) / denom, 4) if denom > 0 else None
+        summary['direction_source'] = 'dealDirection' if int(ds.notna().sum()) > 0 else 'unavailable'
+    return summary
+
+
 def get_snapshot_summary(symbol: str, trade_date: str) -> Dict:
-    fetcher = load_data_fetcher()
-    if fetcher is None:
+    downloader = load_ths_downloader()
+    if downloader is None:
         return {}
     try:
-        df = fetcher.get_snapshot_data(symbol, trade_date, realtime=True)
-        if df is None or df.empty:
-            return {}
-        amt_col = 'amt' if 'amt' in df.columns else None
-        vol_col = 'vol' if 'vol' in df.columns else None
-        price_col = None
-        for c in ['latest', 'price', 'lastPrice', '成交价']:
-            if c in df.columns:
-                price_col = c
-                break
-        dir_col = None
-        for c in ['dealDirection', 'direction', 'bsFlag', '买卖方向']:
-            if c in df.columns:
-                dir_col = c
-                break
-        buy_cols = [c for c in df.columns if 'buy' in str(c).lower() or 'bid' in str(c).lower()]
-        sell_cols = [c for c in df.columns if 'sell' in str(c).lower() or 'ask' in str(c).lower()]
-        summary = {
-            'snapshot_rows': int(len(df)),
-            'snapshot_amount_sum': float(df[amt_col].fillna(0).sum()) if amt_col else None,
-            'snapshot_volume_sum': float(df[vol_col].fillna(0).sum()) if vol_col else None,
-            'snapshot_price_last': float(pd.to_numeric(df[price_col], errors='coerce').dropna().iloc[-1]) if price_col and not pd.to_numeric(df[price_col], errors='coerce').dropna().empty else None,
-            'buy_cols_detected': buy_cols[:5],
-            'sell_cols_detected': sell_cols[:5],
-        }
-        if amt_col and len(df) >= 20:
-            tail = df.tail(min(30, len(df))).copy()
-            head = df.head(min(30, len(df))).copy()
-            summary['snapshot_amt_tail_sum'] = float(tail[amt_col].fillna(0).sum())
-            summary['snapshot_amt_head_sum'] = float(head[amt_col].fillna(0).sum())
-        if dir_col and amt_col:
-            ds = pd.to_numeric(df[dir_col], errors='coerce')
-            amt = pd.to_numeric(df[amt_col], errors='coerce').fillna(0)
-            summary['direction_nonnull_count'] = int(ds.notna().sum())
-            buy_mask = ds.isin([5])
-            sell_mask = ds.isin([1])
-            neutral_mask = ds.isin([15])
-            summary['buy_amount_sum'] = float(amt[buy_mask].sum())
-            summary['sell_amount_sum'] = float(amt[sell_mask].sum())
-            summary['neutral_amount_sum'] = float(amt[neutral_mask].sum())
-            denom = float(amt[buy_mask].sum() + amt[sell_mask].sum())
-            summary['buy_sell_imbalance'] = round((float(amt[buy_mask].sum()) - float(amt[sell_mask].sum())) / denom, 4) if denom > 0 else None
-            summary['direction_source'] = 'dealDirection' if int(ds.notna().sum()) > 0 else 'unavailable'
-        return summary
+        indicators = 'open;high;low;close;volume;amount'
+        results = downloader.download_hf_data(
+            stock_codes=[symbol],
+            start_time=f'{trade_date} 09:30:00',
+            end_time=f'{trade_date} 15:00:00',
+            indicators=indicators,
+        )
+        df = results.get(symbol)
+        return summarize_snapshot_df(df) if df is not None else {}
     except Exception:
         return {}
-    finally:
-        try:
-            fetcher.close()
-        except Exception:
-            pass
 
 
 def detect_price_fields(row: pd.Series) -> Dict[str, Optional[float]]:
