@@ -287,7 +287,7 @@ class ReportGenerator:
 
         json_path = os.path.join(output_dir, f'{filename}.json')
         with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(json_report, ensure_ascii=False, indent=2, fp=f)
+            json.dump(json_report, ensure_ascii=False, indent=2, fp=f, default=str)
         print(f'JSON数据已保存: {json_path}')
 
         return text_path, json_path
