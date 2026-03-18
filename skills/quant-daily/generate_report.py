@@ -5,7 +5,7 @@ generate_report.py - 整合生成每日量化简报
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.request import urlopen
 from fetch_news import NewsFetcher
@@ -19,6 +19,8 @@ class ReportGenerator:
         self.date_str = self.today.strftime('%Y年%m月%d日')
         self.weekday = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][self.today.weekday()]
         self.workspace = Path('/root/.openclaw/workspace')
+        self.yesterday = self.today - timedelta(days=1)
+        self.yesterday_str = self.yesterday.strftime('%Y-%m-%d')
 
     def generate(self, output_format='text'):
         """生成完整报告"""
@@ -59,7 +61,7 @@ class ReportGenerator:
 
     def _load_project_progress(self):
         candidates = [
-            self.workspace / 'memory' / '2026-03-18.md',
+            self.workspace / 'memory' / f'{self.yesterday_str}.md',
             self.workspace / 'obsidian' / '交易系统' / '市场情绪监控项目日志.md',
         ]
         merged = []
@@ -115,7 +117,7 @@ class ReportGenerator:
         lines.append('')
 
         if emotion:
-            lines.append('🧭 【昨日市场情绪回顾】')
+            lines.append(f'🧭 【昨日市场情绪回顾｜{self.yesterday_str}】')
             lines.append('-' * 30)
             lines.append(f"- 情绪评分：{emotion.get('emotion_score', '-')}")
             lines.append(f"- 红绿灯：{emotion.get('traffic_light', '-')}")
@@ -137,7 +139,7 @@ class ReportGenerator:
             lines.append(f"- 炸板率：{float(er) * 100:.2f}%" if er is not None else '- 炸板率：-')
             lines.append('')
 
-        lines.append('🚀 【昨日项目进度】')
+        lines.append(f'🚀 【昨日项目进度｜{self.yesterday_str}】')
         lines.append('-' * 30)
         if project_progress:
             for idx, item in enumerate(project_progress, 1):
