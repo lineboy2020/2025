@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数据检查面板</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: #131722; color: #d1d4dc; }
+    .header { padding: 14px 18px; background: #1e222d; border-bottom: 1px solid #2a2e39; display:flex; justify-content:space-between; align-items:center; gap: 12px; flex-wrap: wrap; }
+    .title { font-weight: 700; color: #4c8dff; }
+    .sub { color:#8b93a7; font-size: 12px; }
+    .actions { display:flex; gap:10px; align-items:center; }
+    .btn, select { background:#2a2e39; color:#d1d4dc; border:1px solid #3a3e4e; border-radius:6px; padding:8px 12px; cursor:pointer; }
+    .layout { display:flex; height: calc(100vh - 62px); }
+    .sidebar { width: 280px; border-right: 1px solid #2a2e39; background:#171b24; padding:12px; overflow:auto; }
+    .tab { width:100%; text-align:left; padding:12px; border-radius:8px; border:1px solid #2a2e39; background:#1e222d; color:#d1d4dc; cursor:pointer; margin-bottom:10px; }
+    .tab.active { border-color:#4c8dff; background:#22304d; }
+    .tab .k { font-size: 14px; font-weight:600; }
+    .tab .d { font-size: 12px; color:#8b93a7; margin-top:4px; }
+    .content { flex:1; overflow:auto; padding:16px; }
+    .cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:16px; }
+    .card { background:#1e222d; border:1px solid #2a2e39; border-radius:10px; padding:14px; }
+    .card .label { color:#8b93a7; font-size:12px; margin-bottom:8px; }
+    .card .value { font-size:24px; font-weight:700; }
+    .section { background:#1e222d; border:1px solid #2a2e39; border-radius:10px; padding:14px; margin-bottom:16px; }
+    .section h3 { margin:0 0 12px 0; font-size:16px; }
+    .meta { display:grid; grid-template-columns: 180px 1fr; gap:8px 12px; font-size:13px; }
+    .meta .k { color:#8b93a7; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { background:#252a3a; border-radius:999px; padding:6px 10px; font-size:12px; }
+    table { width:100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom:1px solid #2a2e39; padding:8px 10px; text-align:left; vertical-align: top; }
+    th { position: sticky; top:0; background:#1e222d; z-index:1; }
+    .table-wrap { max-height: 480px; overflow:auto; border:1px solid #2a2e39; border-radius:8px; }
+    .muted { color:#8b93a7; }
+    .ok { color:#54d17a; }
+    .err { color:#ff7b72; }
+    .loading { padding: 40px; text-align:center; color:#8b93a7; }
+    a { color:#7fb0ff; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="title">数据检查面板</div>
+      <div class="sub">统一查看 qingxu / zhishu / limit_up / longhubang 的最新数据、字段缺失与样例明细</div>
+    </div>
+    <div class="actions">
+      <select id="rowLimit">
+        <option value="50">样例 50 行</option>
+        <option value="100" selected>样例 100 行</option>
+        <option value="200">样例 200 行</option>
+      </select>
+      <button class="btn" onclick="reloadCurrent()">刷新当前</button>
+      <button class="btn" onclick="reloadAll()">刷新全部</button>
+      <a class="btn" href="/static/kline.html?code=000001.SZ">K线页</a>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content" id="content">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <script>
+    const DATASETS = [
+      { key: 'qingxu', label: '市场情绪', file: 'qingxu.parquet' },
+      { key: 'zhishu', label: '指数', file: 'zhishu.parquet' },
+      { key: 'limit_up', label: '涨停', file: 'limit_up.parquet' },
+      { key: 'longhubang', label: '龙虎榜', file: 'longhubang.parquet' },
+    ];
+
+    let currentKey = 'qingxu';
+    let cache = {};
+
+    function esc(v) {
+      if (v === null || v === undefined) return '';
+      return String(v).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    function getLimit() {
+      return document.getElementById('rowLimit').value;
+    }
+
+    function renderSidebar() {
+      const el = document.getElementById('sidebar');
+      el.innerHTML = DATASETS.map(ds => {
+        const item = cache[ds.key];
+        const status = item ? (item.success ? `最新: ${item.latest_date || '未知'}` : '加载失败') : '未加载';
+        return `
+          <button class="tab ${currentKey === ds.key ? 'active' : ''}" onclick="switchTab('${ds.key}')">
+            <div class="k">${ds.label}</div>
+            <div class="d">${ds.file}</div>
+            <div class="d ${item && item.success ? 'ok' : item ? 'err' : ''}">${esc(status)}</div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    async function fetchSummary(key) {
+      const resp = await fetch(`/api/data-check/summary/${key}?limit=${getLimit()}`);
+      const data = await resp.json();
+      cache[key] = data;
+      renderSidebar();
+      if (currentKey === key) renderContent(data);
+    }
+
+    async function reloadAll() {
+      document.getElementById('content').innerHTML = '<div class="loading">正在刷新全部数据...</div>';
+      for (const ds of DATASETS) {
+        await fetchSummary(ds.key);
+      }
+    }
+
+    async function reloadCurrent() {
+      document.getElementById('content').innerHTML = '<div class="loading">正在刷新当前数据...</div>';
+      await fetchSummary(currentKey);
+    }
+
+    async function switchTab(key) {
+      currentKey = key;
+      renderSidebar();
+      if (cache[key]) {
+        renderContent(cache[key]);
+      } else {
+        document.getElementById('content').innerHTML = '<div class="loading">加载中...</div>';
+        await fetchSummary(key);
+      }
+    }
+
+    function renderContent(data) {
+      const el = document.getElementById('content');
+      if (!data || !data.success) {
+        el.innerHTML = `<div class="section"><h3>加载失败</h3><div class="err">${esc(data?.error || '未知错误')}</div></div>`;
+        return;
+      }
+
+      const columns = data.columns || [];
+      const rows = data.sample_rows || [];
+      const nullEntries = Object.entries(data.null_counts || {}).sort((a, b) => b[1] - a[1]);
+
+      el.innerHTML = `
+        <div class="cards">
+          <div class="card"><div class="label">数据集</div><div class="value">${esc(data.dataset)}</div></div>
+          <div class="card"><div class="label">总行数</div><div class="value">${esc(data.row_count)}</div></div>
+          <div class="card"><div class="label">最新日期</div><div class="value">${esc(data.latest_date || '无日期列')}</div></div>
+          <div class="card"><div class="label">最新日期行数</div><div class="value">${esc(data.latest_row_count)}</div></div>
+        </div>
+
+        <div class="section">
+          <h3>基础信息</h3>
+          <div class="meta">
+            <div class="k">文件路径</div><div>${esc(data.path)}</div>
+            <div class="k">日期列</div><div>${esc(data.date_column || '未识别')}</div>
+            <div class="k">字段数</div><div>${esc(columns.length)}</div>
+            <div class="k">样例行数</div><div>${esc(rows.length)}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>字段列表</h3>
+          <div class="chips">${columns.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>
+        </div>
+
+        <div class="section">
+          <h3>字段空值统计</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>字段</th><th>空值数</th></tr></thead>
+              <tbody>
+                ${nullEntries.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>最新日期样例明细</h3>
+          <div class="muted" style="margin-bottom:8px;">默认展示最新交易日样例；如果该数据无日期列，则展示文件前 N 行。</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>${columns.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+              <tbody>
+                ${rows.map(row => `<tr>${columns.map(c => `<td>${esc(row[c])}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="999">暂无数据</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      renderSidebar();
+      await reloadAll();
+      await switchTab(currentKey);
+    });
+  </script>
+</body>
+</html>
