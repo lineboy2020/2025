@@ -19,6 +19,29 @@ def summarize_results(results: List[Dict]) -> Dict:
     }
 
 
+def summarize_backtest_results(results: List[Dict]) -> Dict:
+    total = len(results)
+    if total == 0:
+        return {
+            'total': 0,
+            'win_count': 0,
+            'stoploss_count': 0,
+            'avg_return_pct': 0.0,
+            'tp_hit_count': 0,
+        }
+    win_count = sum(1 for r in results if (r.get('exit_return_pct') or 0) > 0)
+    stoploss_count = sum(1 for r in results if r.get('exit_reason') == 'stop_loss')
+    tp_hit_count = sum(1 for r in results if str(r.get('exit_reason', '')).startswith('take_profit'))
+    avg_return = round(sum((r.get('exit_return_pct') or 0) for r in results) / total, 4)
+    return {
+        'total': total,
+        'win_count': win_count,
+        'stoploss_count': stoploss_count,
+        'avg_return_pct': avg_return,
+        'tp_hit_count': tp_hit_count,
+    }
+
+
 def lightweight_grid_hint() -> Dict:
     return {
         'supported': True,
