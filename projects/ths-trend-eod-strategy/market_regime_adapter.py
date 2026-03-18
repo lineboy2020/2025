@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import io
+import logging
 import sys
+import warnings
+from contextlib import redirect_stderr, redirect_stdout
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict
@@ -16,8 +20,12 @@ from predictor import EmotionCyclePredictor  # type: ignore
 
 @lru_cache(maxsize=256)
 def get_market_emotion(date: str) -> Dict:
-    predictor = EmotionCyclePredictor()
-    result = predictor.predict_today(date)
+    warnings.filterwarnings('ignore')
+    logging.getLogger('EmotionCyclePredictor').setLevel(logging.CRITICAL)
+    sink = io.StringIO()
+    with redirect_stdout(sink), redirect_stderr(sink):
+        predictor = EmotionCyclePredictor()
+        result = predictor.predict_today(date)
     return {
         'date': result.get('date'),
         'actual_date': result.get('actual_date'),
