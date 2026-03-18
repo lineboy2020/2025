@@ -76,7 +76,55 @@ def build_history_candidates(gateway: DataGateway, trade_date: str, overrides: D
     return results
 
 
+def compute_market_regime(gateway: DataGateway, trade_date: str) -> Dict:
+    names = load_universe(gateway)
+    symbols = list(names.keys())
+    history_map = gateway.get_history(symbols, trade_date, trade_date)
+    gains = []
+    strong_count = 0
+    weak_count = 0
+    for symbol in symbols:
+        df = history_map.get(symbol)
+        if df is None or df.empty:
+            continue
+        row = df.iloc[-1]
+        if 'open' not in row or 'close' not in row:
+            continue
+        o = float(row['open'])
+        c = float(row['close'])
+        if o <= 0:
+            continue
+        g = (c / o - 1) * 100
+        gains.append(g)
+        if g >= 4:
+            strong_count += 1
+        if g <= -3:
+            weak_count += 1
+    total = len(gains)
+    avg_gain = round(sum(gains) / total, 4) if total else 0.0
+    strong_ratio = round(strong_count / total, 4) if total else 0.0
+    weak_ratio = round(weak_count / total, 4) if total else 0.0
+    return {
+        'total': total,
+        'avg_gain_pct': avg_gain,
+        'strong_ratio': strong_ratio,
+        'weak_ratio': weak_ratio,
+        'risk_on': avg_gain >= 0.5 and strong_ratio >= 0.08 and weak_ratio <= 0.12,
+    }
+
+
 def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | None = None) -> Dict:
+    regime = compute_market_regime(gateway, trade_date)
+    if overrides and overrides.get('use_regime_filter') and not regime.get('risk_on'):
+        return {
+            'date': trade_date,
+            'candidate_count': 0,
+            'evaluated_count': 0,
+            'summary': summarize_backtest_results([]),
+            'results': [],
+            'regime': regime,
+            'skipped_by_regime_filter': True,
+        }
     candidates = build_history_candidates(gateway, trade_date, overrides=overrides)
     if not candidates:
         return {
@@ -85,6 +133,7 @@ def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | Non
             'evaluated_count': 0,
             'summary': summarize_backtest_results([]),
             'results': [],
+            'regime': regime,
         }
     buy_date = datetime.strptime(trade_date, '%Y-%m-%d').date()
     end_date = (buy_date + timedelta(days=3)).isoformat()
@@ -122,6 +171,7 @@ def run_single_date(gateway: DataGateway, trade_date: str, overrides: Dict | Non
         'evaluated_count': len(results),
         'summary': summarize_backtest_results(results),
         'results': results,
+        'regime': regime,
     }
 
 
@@ -163,6 +213,7 @@ def main():
     parser.add_argument('--min-turnover-amount', type=float, default=None)
     parser.add_argument('--max-candidates', type=int, default=None)
     parser.add_argument('--scan-grid', action='store_true')
+    parser.add_argument('--use-regime-filter', action='store_true')
     args = parser.parse_args()
 
     gateway = DataGateway()
@@ -171,6 +222,7 @@ def main():
         'tail_strength_threshold': args.tail_strength_threshold,
         'min_turnover_amount': args.min_turnover_amount,
         'max_candidates': args.max_candidates,
+        'use_regime_filter': args.use_regime_filter,
     }
 
     if args.batch_start and args.batch_end and args.scan_grid:
