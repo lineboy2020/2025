@@ -1,0 +1,53 @@
+{
+  "project": {
+    "name": "ths-strategy-template",
+    "version": "0.1.0",
+    "timezone": "Asia/Shanghai"
+  },
+  "storage": {
+    "primary": "duckdb",
+    "duckdb_path": "/root/.openclaw/workspace/data/db/kline_eod.duckdb",
+    "private_parquet_dir": "/root/.openclaw/workspace/projects/ths-strategy-template/data"
+  },
+  "data_sources": {
+    "history": {
+      "primary": "duckdb",
+      "fallback": ["ths_sdk", "ths_http"],
+      "allow_intraday_sdk": false
+    },
+    "realtime": {
+      "primary": "ths_http",
+      "fallback": ["akshare"],
+      "allow_sdk": false
+    },
+    "snapshot": {
+      "primary": "ths_http",
+      "fallback": [],
+      "allow_sdk": false
+    },
+    "hf": {
+      "primary": "ths_http",
+      "fallback": [],
+      "allow_sdk": false
+    }
+  },
+  "strategy": {
+    "name": "demo_breakout_watch",
+    "mode": "eod_to_intraday",
+    "buy_ref_field": "buy_price_ref",
+    "take_profit": [0.03, 0.05, 0.08],
+    "stop_loss": 0.07,
+    "capital_strength_threshold": 0.08,
+    "capital_weak_threshold": -0.08
+  },
+  "analyzer": {
+    "mode": "light",
+    "grid_search_enabled": true,
+    "max_parameter_sets": 30
+  },
+  "notification": {
+    "channels": ["console", "markdown", "qq", "dingtalk"],
+    "dedupe": true,
+    "cooldown_minutes": 10
+  }
+}
