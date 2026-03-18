@@ -19,7 +19,8 @@ import pyarrow.parquet as pq
 
 # 获取技能根目录
 SKILL_ROOT = Path(__file__).parent.parent
-PROJECT_ROOT = SKILL_ROOT.parent.parent.parent
+PROJECT_ROOT = SKILL_ROOT.parent
+WORKSPACE_ROOT = PROJECT_ROOT.parent
 
 # 创建 FastAPI 应用
 app = FastAPI(
@@ -47,7 +48,7 @@ def load_config() -> Dict[str, Any]:
 
 
 def get_data_db_dir() -> Path:
-    return PROJECT_ROOT / "data" / "db"
+    return WORKSPACE_ROOT / "data" / "db"
 
 
 def get_data_source_path(name: str) -> Path:
@@ -154,7 +155,7 @@ def get_db_path() -> str:
         return db_path
     
     # 默认路径
-    return str(PROJECT_ROOT / "data" / "db" / "kline_eod.duckdb")
+    return str(WORKSPACE_ROOT / "data" / "db" / "kline_eod.duckdb")
 
 
 class KlineServer:
