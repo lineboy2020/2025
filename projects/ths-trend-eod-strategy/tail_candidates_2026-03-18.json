@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "generated_at": "2026-03-18T07:32:21.900314",
+  "trade_date": "2026-03-18",
+  "strategy": "trend_eod_realtime_v1",
+  "strategy_state": "tail_candidates_generated",
+  "candidate_count": 3,
+  "candidates": [
+    {
+      "symbol": "000534.SZ",
+      "name": "万泽股份",
+      "score": 87.12,
+      "intraday_gain_pct": 7.61,
+      "tail_strength": 0.8971,
+      "amount": 1124014900.0,
+      "risk_tags": [
+        "涨幅过大谨慎追高"
+      ],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 43.15,
+        "stop_loss_price": 40.13,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 44.44,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 45.31,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 46.6,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000555.SZ",
+      "name": "神州信息",
+      "score": 85.74,
+      "intraday_gain_pct": 5.0,
+      "tail_strength": 0.9245,
+      "amount": 875697540.0,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 18.47,
+        "stop_loss_price": 17.18,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 19.02,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 19.39,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 19.95,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    },
+    {
+      "symbol": "000818.SZ",
+      "name": "航锦科技",
+      "score": 84.63,
+      "intraday_gain_pct": 5.79,
+      "tail_strength": 0.6721,
+      "amount": 1775027600.0,
+      "risk_tags": [],
+      "trade_plan": {
+        "buy_window": "14:30-14:50",
+        "buy_price_ref": 24.12,
+        "stop_loss_price": 22.43,
+        "take_profit_plan": [
+          {
+            "target_pct": 3.0,
+            "price": 24.84,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 5.0,
+            "price": 25.33,
+            "sell_ratio": 0.35
+          },
+          {
+            "target_pct": 8.0,
+            "price": 26.05,
+            "sell_ratio": 0.3
+          }
+        ],
+        "fallback": "若次日未触发止盈止损，尾盘择机清仓"
+      },
+      "strategy_state": "tail_candidate_ready"
+    }
+  ]
+}

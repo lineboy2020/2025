@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser(description='趋势尾盘实时筛选入口')
     parser.add_argument('--date', required=True)
+    parser.add_argument('--json-out', default='')
     args = parser.parse_args()
 
     gateway = DataGateway()
@@ -68,6 +69,8 @@ def main():
         'candidate_count': len(results),
         'candidates': results,
     }
+    json_out = args.json_out or str(ROOT / f'tail_candidates_{args.date}.json')
+    Path(json_out).write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps(out, ensure_ascii=False, indent=2))
     lines = [f"- {c['symbol']} {c['name']} | 分数={c['score']} | 日内涨幅={c['intraday_gain_pct']}% | 尾盘强度={c['tail_strength']} | 买入参考={c['trade_plan']['buy_price_ref']}" for c in results]
     print_console(lines)
