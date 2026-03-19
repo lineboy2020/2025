@@ -736,33 +736,16 @@
             }
 
             const d = cachedDecisionAnalysis;
-            const permissionText = {
-                buy_allowed: '可买',
-                observe_only: '观察',
-                buy_forbidden: '不买'
-            };
-            const adviceText = {
-                pilot: '试错仓',
-                half: '半仓',
-                main: '主仓',
-                reduce: '减仓',
-                flat: '空仓'
-            };
-            const setupText = {
-                buy1_try: '1买试错',
-                buy2_confirm: '2买确认',
-                buy3_follow: '3买跟随',
-                waiting: '等待',
-                none: '无'
-            };
+            const hs = d.history_stats || {};
 
             container.innerHTML = `
                 <div class="analysis-box" style="margin-top:0;">
                     <div class="analysis-row"><span class="label">趋势结构</span><span class="value highlight">${d.trend_structure || '-'}</span></div>
                     <div class="analysis-row"><span class="label">强弱评级</span><span class="value">${d.strength || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">交易权限</span><span class="value ${d.trade_permission === 'buy_allowed' ? 'up' : d.trade_permission === 'buy_forbidden' ? 'down' : 'warning'}">${permissionText[d.trade_permission] || d.trade_permission || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">当前信号</span><span class="value">${setupText[d.setup_type] || d.setup_type || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">仓位建议</span><span class="value">${adviceText[d.position_advice] || d.position_advice || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">交易权限</span><span class="value ${d.trade_permission === 'buy_allowed' ? 'up' : d.trade_permission === 'buy_forbidden' ? 'down' : 'warning'}">${d.trade_permission_zh || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">当前信号</span><span class="value">${d.setup_type_zh || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">最近分型</span><span class="value">${d.last_fractal_zh || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">仓位建议</span><span class="value">${d.position_advice_zh || '-'}</span></div>
                     <div class="analysis-row"><span class="label">风险级别</span><span class="value ${d.risk_level === '高' ? 'down' : d.risk_level === '中高' ? 'warning' : ''}">${d.risk_level || '-'}</span></div>
                 </div>
                 <div class="trade-suggestion">
@@ -775,8 +758,13 @@
                 </div>
                 <div class="description-box">${d.action_summary || '-'}</div>
                 <div class="analysis-box">
-                    <div class="analysis-row"><span class="label">历史胜率</span><span class="value warning">待真实统计模块接入</span></div>
-                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${(d.history_stats && d.history_stats.note) ? d.history_stats.note : '当前仅展示真实结构/决策分析。'}</div>
+                    <div class="analysis-row"><span class="label">历史样本数</span><span class="value">${hs.available && hs.sample_size != null ? hs.sample_size : '待统计'}</span></div>
+                    <div class="analysis-row"><span class="label">次日胜率</span><span class="value">${hs.available && hs.win_rate_1d != null ? hs.win_rate_1d + '%' : '待统计'}</span></div>
+                    <div class="analysis-row"><span class="label">3日胜率</span><span class="value">${hs.available && hs.win_rate_3d != null ? hs.win_rate_3d + '%' : '待统计'}</span></div>
+                    <div class="analysis-row"><span class="label">次日平均收益</span><span class="value">${hs.available && hs.avg_return_1d != null ? hs.avg_return_1d + '%' : '待统计'}</span></div>
+                    <div class="analysis-row"><span class="label">3日平均收益</span><span class="value">${hs.available && hs.avg_return_3d != null ? hs.avg_return_3d + '%' : '待统计'}</span></div>
+                    <div class="analysis-row"><span class="label">3日最大回撤</span><span class="value">${hs.available && hs.max_drawdown_3d != null ? hs.max_drawdown_3d + '%' : '待统计'}</span></div>
+                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${hs.note || '当前仅展示真实结构/决策分析。'}</div>
                 </div>
             `;
         }

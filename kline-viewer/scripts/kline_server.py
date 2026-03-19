@@ -845,16 +845,46 @@ class KlineServer:
         elif last_fractal in ['strong_top', 'single_k_top']:
             risk_level = '高'
 
+        permission_zh = {'buy_allowed': '可买', 'observe_only': '观察', 'buy_forbidden': '不买'}
+        setup_zh = {
+            'buy1_try': '一买试错',
+            'buy2_confirm': '二买确认',
+            'buy3_follow': '三买跟随',
+            'waiting': '等待回调',
+            'none': '无明确买点'
+        }
+        position_zh = {
+            'pilot': '试错仓',
+            'half': '半仓',
+            'main': '主仓',
+            'reduce': '减仓',
+            'flat': '空仓'
+        }
+        fractal_zh = {
+            'strong_top': '强顶分型',
+            'top': '顶分型',
+            'strong_bottom': '强底分型',
+            'bottom': '底分型',
+            'single_k_top': '单K顶分型',
+            'single_k_bottom': '单K底分型',
+        }
+
         history_stats = {
             'available': False,
+            'sample_size': None,
+            'win_rate_1d': None,
+            'win_rate_3d': None,
+            'avg_return_1d': None,
+            'avg_return_3d': None,
+            'max_drawdown_3d': None,
             'note': '历史胜率统计模块未接入，当前仅展示真实结构/决策分析，不展示伪造统计值。'
         }
 
         action_summary = (
-            f"当前{trend_structure}，强弱判定为{strength}，"
-            f"交易权限为{'可买' if trade_permission == 'buy_allowed' else '观察' if trade_permission == 'observe_only' else '不买'}。"
-            f"当前信号为{current_state_name or '无明确买点状态'}，"
-            f"仓位建议{position_advice}。"
+            f"当前处于{trend_structure}，强弱评级为{strength}，"
+            f"交易结论为{permission_zh.get(trade_permission, trade_permission)}；"
+            f"当前信号为{setup_zh.get(setup_type, setup_type)}，"
+            f"仓位建议为{position_zh.get(position_advice, position_advice)}。"
         )
 
         return {
@@ -865,9 +895,13 @@ class KlineServer:
             'trend_structure': trend_structure,
             'strength': strength,
             'trade_permission': trade_permission,
+            'trade_permission_zh': permission_zh.get(trade_permission, trade_permission),
             'setup_type': setup_type,
+            'setup_type_zh': setup_zh.get(setup_type, setup_type),
             'current_state': current_state_name,
+            'current_state_zh': setup_zh.get(setup_type, current_state_name),
             'last_fractal': last_fractal,
+            'last_fractal_zh': fractal_zh.get(last_fractal, last_fractal),
             'best_entry_zone': best_entry_zone,
             'secondary_entry_zone': secondary_entry_zone,
             'high_risk_zone': high_risk_zone,
@@ -875,6 +909,7 @@ class KlineServer:
             'target_zone_1': target_zone_1,
             'target_zone_2': target_zone_2,
             'position_advice': position_advice,
+            'position_advice_zh': position_zh.get(position_advice, position_advice),
             'risk_level': risk_level,
             'history_stats': history_stats,
             'action_summary': action_summary,
