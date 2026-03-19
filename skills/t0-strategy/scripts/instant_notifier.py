@@ -23,6 +23,7 @@ class T0InstantNotifier:
     def __init__(self):
         self.skill_dir = skill_dir
         self.state_file = skill_dir / '.notified_signals.json'
+        self.audit_log = skill_dir / 'logs' / 'notification_audit.jsonl'
         
         # 通知目标配置
         self.target_qq = "27B4B34AFACA60C236DC67425960CAD8"
@@ -117,6 +118,23 @@ class T0InstantNotifier:
         state = {k: state[k] for k in dates}
         self.save_state(state)
     
+    def append_audit_log(self, signal: Dict, event: str, detail: str = ''):
+        """记录通知审计日志，包括被冷却拦截的重复信号"""
+        try:
+            self.audit_log.parent.mkdir(parents=True, exist_ok=True)
+            row = {
+                'ts': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'event': event,
+                'stock_code': signal.get('stock_code'),
+                'signal_type': signal.get('signal_type'),
+                'signal_timestamp': signal.get('timestamp'),
+                'detail': detail,
+            }
+            with open(self.audit_log, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(row, ensure_ascii=False) + '\n')
+        except Exception as e:
+            print(f"⚠️ 审计日志写入失败: {e}")
+
     def format_qq_message(self, signal: Dict) -> str:
         """格式化QQ通知消息"""
         stock = signal['stock_code']
@@ -303,6 +321,7 @@ class T0InstantNotifier:
         # 检查是否已通知（冷却时间去重）
         if self.is_signal_notified(signal):
             print(f"📭 信号仍在冷却期，跳过: {signal_desc}")
+            self.append_audit_log(signal, event='cooldown_skip', detail='signal suppressed by cooldown window')
             return False
         
         print(f"🎯 新信号 detected: {signal_desc}")
@@ -318,9 +337,11 @@ class T0InstantNotifier:
         # 标记已通知
         if qq_ok or dingtalk_ok:
             self.mark_signal_notified(signal)
+            self.append_audit_log(signal, event='notified', detail=f'qq={qq_ok}, dingtalk={dingtalk_ok}')
             print(f"✅ 信号通知完成")
             return True
         else:
+            self.append_audit_log(signal, event='notify_failed', detail='all channels failed')
             print(f"❌ 信号通知失败")
             return False
     
