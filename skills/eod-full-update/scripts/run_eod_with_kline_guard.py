@@ -32,12 +32,22 @@ def log(msg: str):
 def find_kline_pids() -> list[int]:
     out = subprocess.run(['ps', '-eo', 'pid,args'], capture_output=True, text=True, check=True)
     pids = []
+    patterns = [
+        'python3 -m uvicorn scripts.kline_server:app',
+        'python3 scripts/main.py',
+        'python scripts/main.py',
+    ]
     for line in out.stdout.splitlines():
-        if 'python3 -m uvicorn scripts.kline_server:app' in line and 'grep' not in line:
+        if 'grep' in line:
+            continue
+        if any(p in line for p in patterns):
             parts = line.strip().split(None, 1)
             if parts:
-                pids.append(int(parts[0]))
-    return pids
+                try:
+                    pids.append(int(parts[0]))
+                except Exception:
+                    pass
+    return sorted(set(pids))
 
 
 def stop_kline(timeout: int = 30) -> dict:
