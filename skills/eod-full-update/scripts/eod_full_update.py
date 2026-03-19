@@ -116,15 +116,41 @@ class EODFullUpdater:
         self.downloader_http = None
         self.downloader_sdk = None
 
+    def _get_http_downloader(self):
+        if self.downloader_http is None:
+            has_http = bool(os.environ.get('THS_HTTP_ACCESS_TOKEN') or os.environ.get('THS_HTTP_TOKEN'))
+            if not has_http:
+                return None
+            self.downloader_http = UnifiedTHSDownloader(use_http=True)
+        return self.downloader_http
+
+    def _get_sdk_downloader(self, force_new=False):
+        if force_new and self.downloader_sdk is not None:
+            try:
+                self.downloader_sdk.logout()
+            except Exception:
+                pass
+            self.downloader_sdk = None
+        if self.downloader_sdk is None:
+            self.downloader_sdk = UnifiedTHSDownloader(use_http=False)
+        return self.downloader_sdk
+
+    def _release_sdk_downloader(self):
+        if self.downloader_sdk is not None:
+            try:
+                self.downloader_sdk.logout()
+            except Exception:
+                pass
+            self.downloader_sdk = None
+
     def log(self, msg):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
     def login(self):
-        self.log("登录同花顺...")
-        has_http = bool(os.environ.get('THS_HTTP_ACCESS_TOKEN'))
-        self.downloader_http = UnifiedTHSDownloader(use_http=True) if has_http else None
-        self.downloader_sdk = UnifiedTHSDownloader(use_http=False)
-        self.log(f"✅ 登录成功 (HTTP可用: {bool(self.downloader_http)}, SDK可用: True)")
+        self.log("初始化同花顺连接...")
+        http_ready = bool(self._get_http_downloader())
+        # SDK 不在全局启动时长驻登录，避免生命周期跨步骤污染；按需创建/释放
+        self.log(f"✅ 初始化完成 (HTTP可用: {http_ready}, SDK模式: 按需登录)")
 
     def logout(self):
         for d in [self.downloader_http, self.downloader_sdk]:
@@ -133,10 +159,12 @@ class EODFullUpdater:
                     d.logout()
                 except Exception:
                     pass
+        self.downloader_http = None
+        self.downloader_sdk = None
         self.log("✅ 已登出")
 
     def _wc_downloader(self):
-        return self.downloader_http or self.downloader_sdk
+        return self._get_http_downloader() or self._get_sdk_downloader()
 
     def _normalize_daily_df(self, df: pd.DataFrame) -> pd.DataFrame:
         work = df.copy()
@@ -212,7 +240,8 @@ class EODFullUpdater:
         self.log("=" * 60)
         try:
             indices = ["000001.SH", "399001.SZ", "399006.SZ"]
-            raw_data = self.downloader_sdk.download_history_data(indices, self.trade_date, self.trade_date)
+            sdk = self._get_sdk_downloader(force_new=True)
+            raw_data = sdk.download_history_data(indices, self.trade_date, self.trade_date)
             frames = []
             if raw_data:
                 for symbol, df in raw_data.items():
@@ -242,6 +271,12 @@ class EODFullUpdater:
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['zhishu'] = {'success': False, 'error': str(e)}
+        finally:
+            self._release_sdk_downloader()
+
+    def update_kline_eod(self):
+            self.log(f"❌ 更新失败: {e}")
+            self.results['zhishu'] = {'success': False, 'error': str(e)}
 
     def update_kline_eod(self):
         self.log("\n" + "=" * 60)
@@ -264,7 +299,8 @@ class EODFullUpdater:
                 batch = stock_codes[i:i + batch_size]
                 self.log(f"  下载批次 {i // batch_size + 1}/{(len(stock_codes) - 1) // batch_size + 1} ({len(batch)}只，SDK)...")
                 try:
-                    raw_data = self.downloader_sdk.download_history_data(batch, self.trade_date, self.trade_date)
+                    sdk = self._get_sdk_downloader(force_new=(i == 0))
+                    raw_data = sdk.download_history_data(batch, self.trade_date, self.trade_date)
                     if raw_data:
                         for symbol, df in raw_data.items():
                             if df is not None and not df.empty:
@@ -321,6 +357,8 @@ class EODFullUpdater:
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['kline_eod'] = {'success': False, 'error': str(e)}
+        finally:
+            self._release_sdk_downloader()
 
     def update_limit_up(self):
         self.log("\n" + "=" * 60)
