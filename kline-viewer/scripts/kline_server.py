@@ -869,16 +869,7 @@ class KlineServer:
             'single_k_bottom': '单K底分型',
         }
 
-        history_stats = {
-            'available': False,
-            'sample_size': None,
-            'win_rate_1d': None,
-            'win_rate_3d': None,
-            'avg_return_1d': None,
-            'avg_return_3d': None,
-            'max_drawdown_3d': None,
-            'note': '历史胜率统计模块未接入，当前仅展示真实结构/决策分析，不展示伪造统计值。'
-        }
+        history_stats = self._build_buy_point_history_stats(kline_data, buy_points)
 
         action_summary = (
             f"当前处于{trend_structure}，强弱评级为{strength}，"
@@ -913,6 +904,103 @@ class KlineServer:
             'risk_level': risk_level,
             'history_stats': history_stats,
             'action_summary': action_summary,
+        }
+
+    def _build_buy_point_history_stats(self, kline_data: List[Dict[str, Any]], buy_points: List[Dict[str, Any]]) -> Dict[str, Any]:
+        if not kline_data or not buy_points:
+            return {
+                'available': False,
+                'sample_size': 0,
+                'win_rate_1d': None,
+                'win_rate_3d': None,
+                'avg_return_1d': None,
+                'avg_return_3d': None,
+                'max_drawdown_3d': None,
+                'note': '当前标的历史买点样本不足，暂无法形成真实统计。'
+            }
+
+        rows = []
+        for item in kline_data:
+            try:
+                rows.append({
+                    'time': str(item.get('time')),
+                    'open': float(item.get('open', 0) or 0),
+                    'high': float(item.get('high', 0) or 0),
+                    'low': float(item.get('low', 0) or 0),
+                    'close': float(item.get('close', 0) or 0),
+                })
+            except Exception:
+                continue
+        if not rows:
+            return {
+                'available': False,
+                'sample_size': 0,
+                'win_rate_1d': None,
+                'win_rate_3d': None,
+                'avg_return_1d': None,
+                'avg_return_3d': None,
+                'max_drawdown_3d': None,
+                'note': 'K线样本异常，暂无法形成真实统计。'
+            }
+
+        index_by_date = {row['time']: idx for idx, row in enumerate(rows)}
+        sample_size = 0
+        ret_1d = []
+        ret_3d = []
+        dd_3d = []
+
+        for bp in buy_points:
+            bp_date = str(bp.get('date') or '')[:10]
+            entry_price = float(bp.get('price', 0) or 0)
+            if not bp_date or entry_price <= 0:
+                continue
+            idx = index_by_date.get(bp_date)
+            if idx is None:
+                continue
+            if idx + 1 >= len(rows):
+                continue
+
+            sample_size += 1
+            next1 = rows[idx + 1]
+            r1 = (next1['close'] - entry_price) / entry_price * 100
+            ret_1d.append(r1)
+
+            end_idx = min(idx + 3, len(rows) - 1)
+            future_rows = rows[idx + 1:end_idx + 1]
+            if future_rows:
+                r3 = (future_rows[-1]['close'] - entry_price) / entry_price * 100
+                min_low = min(r['low'] for r in future_rows)
+                mdd = (min_low - entry_price) / entry_price * 100
+                ret_3d.append(r3)
+                dd_3d.append(mdd)
+
+        if sample_size == 0 or not ret_1d:
+            return {
+                'available': False,
+                'sample_size': 0,
+                'win_rate_1d': None,
+                'win_rate_3d': None,
+                'avg_return_1d': None,
+                'avg_return_3d': None,
+                'max_drawdown_3d': None,
+                'note': '当前标的没有足够已落地的历史买点样本，暂无法形成真实统计。'
+            }
+
+        def pct_win(values: List[float]) -> float:
+            return round(sum(1 for v in values if v > 0) / len(values) * 100, 2) if values else None
+
+        def avg(values: List[float]) -> float:
+            return round(sum(values) / len(values), 2) if values else None
+
+        return {
+            'available': True,
+            'sample_size': sample_size,
+            'win_rate_1d': pct_win(ret_1d),
+            'win_rate_3d': pct_win(ret_3d),
+            'avg_return_1d': avg(ret_1d),
+            'avg_return_3d': avg(ret_3d),
+            'max_drawdown_3d': round(min(dd_3d), 2) if dd_3d else None,
+            'note': '基于当前标的历史 buy_points 样本，统计买点出现后 1 日/3 日收益与 3 日最大回撤。仅使用真实历史K线，不做伪造估计。'
         }
 
     @staticmethod
