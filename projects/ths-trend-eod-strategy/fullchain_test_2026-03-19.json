@@ -1,0 +1,18 @@
+{
+  "status": "ok",
+  "trade_date": "2026-03-19",
+  "history_mode": false,
+  "command": [
+    "python3",
+    "runner_live.py",
+    "--date",
+    "2026-03-19",
+    "--json-out",
+    "/root/.openclaw/workspace/projects/ths-trend-eod-strategy/tail_candidates_2026-03-19.json"
+  ],
+  "returncode": 0,
+  "json_exists": true,
+  "md_exists": true,
+  "stdout_preview": "/usr/local/lib/python3.11/site-packages/iFinDPy.pth\n{\n  \"status\": \"ok\",\n  \"generated_at\": \"2026-03-19T03:50:40.963160\",\n  \"trade_date\": \"2026-03-19\",\n  \"strategy\": \"trend_eod_realtime_v1\",\n  \"strategy_state\": \"tail_candidates_generated\",\n  \"candidate_count\": 2,\n  \"candidates\": [\n    {\n      \"symbol\": \"000815.SZ\",\n      \"name\": \"美利云\",\n      \"score\": 92.87,\n      \"intraday_gain_pct\": 6.04,\n      \"tail_strength\": 1.0,\n      \"amount\": 1286796930.0,\n      \"risk_tags\": [],\n      \"trade_plan\": {\n        \"buy_window\": \"14:30-14:50\",\n        \"buy_price_ref\": 19.32,\n        \"stop_loss_price\": 17.97,\n        \"take_profit_plan\": [\n          {\n            \"target_pct\": 3.0,\n            \"price\": 19.9,\n            \"sell_ratio\": 0.35\n          },\n          {\n            \"target_pct\": 5.0,\n            \"price\": 20.29,\n            \"sell_ratio\": 0.35\n          },\n          {\n            \"target_pct\": 8.0,\n            \"price\": 20.87,\n            \"sell_ratio\": 0.3\n          }\n        ],\n        \"fallback\": \"若次日未触发止盈止损，尾盘择机清仓\"\n      },\n      \"strategy_state\": \"tail_candidate_ready\"\n    },\n    {\n      \"symbol\": \"000636.SZ\",\n      \"name\": \"风华高科\",\n      \"score\": 88.07,\n      \"intraday_gain_pct\": 4.53,\n      \"tail_strength\": 0.9477,\n      \"amount\": 1392580500.0,\n      \"risk_tags\": [],\n      \"trade_plan\": {\n        \"buy_window\": \"14:30-14:50\",\n        \"buy_price_ref\": 22.85,\n        \"stop_loss_price\": 21.25,\n        \"take_profit_plan\": [\n          {\n            \"target_pct\": 3.0,\n            \"price\": 23.54,\n            \"sell_ratio\": 0.35\n          },\n          {\n            \"target_pct\": 5.0,\n            \"price\": 23.99,\n            \"sell_ratio\": 0.35\n          },\n          {\n            \"target_pct\": 8.0,\n            \"price\": 24.68,\n            \"sell_ratio\": 0.3\n          }\n        ],\n        \"fallback\": \"若次日未触发止盈止损，尾盘择机清仓\"\n      },\n      \"strategy_state\": \"tail_candidate_ready\"\n    }\n  ]\n}\n- 000815.SZ 美利云 | 分数=92.87 | 日内涨幅=6.04% | 尾盘强度=1.0 | 买入参考=19.32\n- 000636.SZ 风华高科 | 分数=88.07 | 日内涨幅=4.53% | 尾盘强度=0.9477 | 买入参考=22.85\n",
+  "stderr_preview": "2026-03-19 11:50:37,526 - INFO - ✅ HTTP接口模式已启用\n"
+}
