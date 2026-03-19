@@ -845,6 +845,94 @@ class KlineServer:
         elif last_fractal in ['strong_top', 'single_k_top']:
             risk_level = '高'
 
+        def _fractal_strength_name(fractal: Optional[str]) -> str:
+            mapping = {
+                'strong_bottom': '强底分型',
+                'bottom': '底分型',
+                'single_k_bottom': '单K底分型',
+                'strong_top': '强顶分型',
+                'top': '顶分型',
+                'single_k_top': '单K顶分型',
+            }
+            return mapping.get(fractal, fractal or '无')
+
+        buy_type_names = {'1B': '一买', '2B': '二买', '3B': '三买'}
+        def _derive_buy_mode() -> Dict[str, Any]:
+            last_bp = buy_points[-1] if buy_points else None
+            if not last_bp:
+                return {
+                    'mode': None,
+                    'mode_zh': '无明确123买模式',
+                    'stage': 'none',
+                    'stage_zh': '无状态',
+                    'score': 0,
+                    'reason': '最近没有识别到明确买点。'
+                }
+
+            bp_type = last_bp.get('type')
+            is_confirmed = bool(last_bp.get('is_confirmed'))
+            div_score = float(last_bp.get('divergence_score', 0) or 0)
+            confidence = float(last_bp.get('confidence', 0) or 0)
+            fractal_is_strong = last_fractal in ['strong_bottom', 'single_k_bottom']
+
+            if bp_type == '1B':
+                if is_confirmed and div_score > 0:
+                    stage = 'confirmed'
+                    stage_zh = '标准一买'
+                    reason = f'存在背驰证据（评分 {div_score:.2f}），且后续已形成向上一笔确认。'
+                else:
+                    stage = 'candidate'
+                    stage_zh = '候选一买'
+                    reason = '已出现底部反转雏形，但背驰或后续确认仍偏弱，暂按候选一买处理。'
+            elif bp_type == '2B':
+                if is_confirmed:
+                    stage = 'confirmed'
+                    stage_zh = '二买确认'
+                    reason = '1买后的回踩未破关键结构，且已再次转强，按二买确认处理。'
+                else:
+                    stage = 'waiting_confirm'
+                    stage_zh = '二买待确认'
+                    reason = '已出现二买观察位，但回踩后的再次转强尚未完全确认。'
+            elif bp_type == '3B':
+                if is_confirmed:
+                    stage = 'confirmed'
+                    stage_zh = '三买确认'
+                    reason = '已完成离开中枢后的回踩确认，且未有效回中枢。'
+                else:
+                    stage = 'waiting_confirm'
+                    stage_zh = '三买待确认'
+                    reason = '已出现三买观察位，但回踩后的延续上行尚需确认。'
+            else:
+                stage = 'none'
+                stage_zh = '无状态'
+                reason = '最近没有识别到明确买点。'
+
+            score = round(min(100, confidence * 100 + (12 if fractal_is_strong else 0) + (10 if div_score > 0 else 0))) if bp_type else 0
+            return {
+                'mode': bp_type,
+                'mode_zh': buy_type_names.get(bp_type, bp_type),
+                'stage': stage,
+                'stage_zh': stage_zh,
+                'score': score,
+                'reason': reason,
+                'confidence': round(confidence * 100, 1),
+                'divergence_score': round(div_score, 2),
+                'last_buy_point': {
+                    'type': bp_type,
+                    'date': last_bp.get('date'),
+                    'price': last_bp.get('price'),
+                    'is_confirmed': is_confirmed,
+                    'confidence': round(confidence * 100, 1),
+                },
+                'confirm_focus': {
+                    'fractal_strength': _fractal_strength_name(last_fractal),
+                    'needs_up_bi': not is_confirmed if bp_type == '1B' else False,
+                    'needs_rebreak': not is_confirmed if bp_type in ['2B', '3B'] else False,
+                }
+            }
+
+        buy_mode_analysis = _derive_buy_mode()
+
         permission_zh = {'buy_allowed': '可买', 'observe_only': '观察', 'buy_forbidden': '不买'}
         setup_zh = {
             'buy1_try': '一买试错',
@@ -902,6 +990,7 @@ class KlineServer:
             'position_advice': position_advice,
             'position_advice_zh': position_zh.get(position_advice, position_advice),
             'risk_level': risk_level,
+            'buy_mode_analysis': buy_mode_analysis,
             'history_stats': history_stats,
             'action_summary': action_summary,
         }

@@ -748,6 +748,13 @@
                     <div class="analysis-row"><span class="label">仓位建议</span><span class="value">${d.position_advice_zh || '-'}</span></div>
                     <div class="analysis-row"><span class="label">风险级别</span><span class="value ${d.risk_level === '高' ? 'down' : d.risk_level === '中高' ? 'warning' : ''}">${d.risk_level || '-'}</span></div>
                 </div>
+                <div class="analysis-box">
+                    <div class="analysis-row"><span class="label">123买模式</span><span class="value highlight">${d.buy_mode_analysis?.mode_zh || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">模式状态</span><span class="value">${d.buy_mode_analysis?.stage_zh || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">模式评分</span><span class="value">${d.buy_mode_analysis?.score != null ? d.buy_mode_analysis.score + '分' : '-'}</span></div>
+                    <div class="analysis-row"><span class="label">确认重点</span><span class="value">${d.buy_mode_analysis?.confirm_focus?.fractal_strength || '-'}</span></div>
+                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${d.buy_mode_analysis?.reason || '暂无明确123买模式分析。'}</div>
+                </div>
                 <div class="trade-suggestion">
                     <div class="row"><span class="label">最优买点</span><span class="value">${d.best_entry_zone || '-'}</span></div>
                     <div class="row"><span class="label">次优买点</span><span class="value">${d.secondary_entry_zone || '-'}</span></div>
@@ -828,10 +835,14 @@
             detailSection.style.display = 'block';
             
             const typeNames = { '1B': '一买', '2B': '二买', '3B': '三买', '1S': '一卖', '2S': '二卖', '3S': '三卖' };
+            const stageText = point.type === '1B'
+                ? (point.divergence_score > 0 && point.is_confirmed ? '标准一买' : '候选一买')
+                : (point.type === '2B' ? (point.is_confirmed ? '二买确认' : '二买待确认') : (point.type === '3B' ? (point.is_confirmed ? '三买确认' : '三买待确认') : (point.is_confirmed ? '已确认' : '待确认')));
             
             detailContent.innerHTML = `
                 <div class="selected-detail">
                     <h4>${typeNames[point.type] || point.type} @ ${point.price ? point.price.toFixed(2) : '-'}</h4>
+                    <div class="detail-row"><span class="label">模式状态</span><span class="value">${stageText}</span></div>
                     <div class="detail-row"><span class="label">类型</span><span class="value">${point.type}</span></div>
                     <div class="detail-row"><span class="label">价格</span><span class="value">${point.price ? point.price.toFixed(2) : '-'}</span></div>
                     <div class="detail-row"><span class="label">日期</span><span class="value">${point.date || '-'}</span></div>
