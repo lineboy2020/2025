@@ -30,10 +30,20 @@ def evaluate_tail_candidate(symbol: str,
                             open_price: Optional[float],
                             high_price: Optional[float],
                             low_price: Optional[float],
-                            amount: Optional[float]) -> Optional[Dict]:
+                            amount: Optional[float],
+                            pre_close: Optional[float] = None,
+                            change_ratio: Optional[float] = None) -> Optional[Dict]:
     if current_price is None or open_price is None or high_price is None or low_price is None:
         return None
-    intraday_gain_pct = round((current_price / open_price - 1) * 100, 2) if open_price else None
+
+    # 日内涨幅应优先基于昨收，而不是开盘价
+    if change_ratio is not None:
+        intraday_gain_pct = round(float(change_ratio), 2)
+    elif pre_close:
+        intraday_gain_pct = round((current_price / pre_close - 1) * 100, 2)
+    else:
+        intraday_gain_pct = round((current_price / open_price - 1) * 100, 2) if open_price else None
+
     tail_strength = classify_tail_strength(open_price, current_price, high_price, low_price)
 
     risk_tags = []

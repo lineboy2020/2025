@@ -1,37 +1,37 @@
 {
   "status": "ok",
-  "generated_at": "2026-03-19T03:50:40.963160",
+  "generated_at": "2026-03-19T06:53:47.694881",
   "trade_date": "2026-03-19",
   "strategy": "trend_eod_realtime_v1",
   "strategy_state": "tail_candidates_generated",
   "candidate_count": 2,
   "candidates": [
     {
-      "symbol": "000815.SZ",
-      "name": "美利云",
-      "score": 92.87,
-      "intraday_gain_pct": 6.04,
-      "tail_strength": 1.0,
-      "amount": 1286796930.0,
+      "symbol": "000032.SZ",
+      "name": "深桑达A",
+      "score": 79.41,
+      "intraday_gain_pct": 5.14,
+      "tail_strength": 0.6071,
+      "amount": 1512808900.0,
       "risk_tags": [],
       "trade_plan": {
         "buy_window": "14:30-14:50",
-        "buy_price_ref": 19.32,
-        "stop_loss_price": 17.97,
+        "buy_price_ref": 19.02,
+        "stop_loss_price": 17.69,
         "take_profit_plan": [
           {
             "target_pct": 3.0,
-            "price": 19.9,
+            "price": 19.59,
             "sell_ratio": 0.35
           },
           {
             "target_pct": 5.0,
-            "price": 20.29,
+            "price": 19.97,
             "sell_ratio": 0.35
           },
           {
             "target_pct": 8.0,
-            "price": 20.87,
+            "price": 20.54,
             "sell_ratio": 0.3
           }
         ],
@@ -42,29 +42,29 @@
     {
       "symbol": "000636.SZ",
       "name": "风华高科",
-      "score": 88.07,
-      "intraday_gain_pct": 4.53,
-      "tail_strength": 0.9477,
-      "amount": 1392580500.0,
+      "score": 44.45,
+      "intraday_gain_pct": -0.31,
+      "tail_strength": 0.6732,
+      "amount": 2008362300.0,
       "risk_tags": [],
       "trade_plan": {
         "buy_window": "14:30-14:50",
-        "buy_price_ref": 22.85,
-        "stop_loss_price": 21.25,
+        "buy_price_ref": 22.43,
+        "stop_loss_price": 20.86,
         "take_profit_plan": [
           {
             "target_pct": 3.0,
-            "price": 23.54,
+            "price": 23.1,
             "sell_ratio": 0.35
           },
           {
             "target_pct": 5.0,
-            "price": 23.99,
+            "price": 23.55,
             "sell_ratio": 0.35
           },
           {
             "target_pct": 8.0,
-            "price": 24.68,
+            "price": 24.22,
             "sell_ratio": 0.3
           }
         ],

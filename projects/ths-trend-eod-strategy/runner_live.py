@@ -48,6 +48,8 @@ def main():
                 high_price=float(row['high']) if 'high' in row and pd.notna(row['high']) else None,
                 low_price=float(row['low']) if 'low' in row and pd.notna(row['low']) else None,
                 amount=amount,
+                pre_close=float(row['preClose']) if 'preClose' in row and pd.notna(row['preClose']) else None,
+                change_ratio=float(row['changeRatio']) if 'changeRatio' in row and pd.notna(row['changeRatio']) else None,
             )
             if candidate is None:
                 continue
@@ -75,6 +77,8 @@ def main():
                 high_price=float(row['high']) if 'high' in row and pd.notna(row['high']) else None,
                 low_price=float(row['low']) if 'low' in row and pd.notna(row['low']) else None,
                 amount=amount,
+                pre_close=float(row['preClose']) if 'preClose' in row and pd.notna(row['preClose']) else None,
+                change_ratio=float(row['changeRatio']) if 'changeRatio' in row and pd.notna(row['changeRatio']) else None,
             )
             if candidate is None:
                 continue
