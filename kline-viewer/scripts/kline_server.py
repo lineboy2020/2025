@@ -6,7 +6,7 @@ K线展示服务 - 核心模块
 import os
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime, timedelta
 
 from fastapi import FastAPI, HTTPException, Query
@@ -697,6 +697,16 @@ class KlineServer:
         calculator = ChanlunCalculator()
         
         bi_list, zhongshu_list, buy_points, sell_points, current_state, kline_with_fractal = calculator.calculate(kline_data)
+        decision_analysis = self.build_decision_analysis(
+            symbol=symbol,
+            period=period,
+            kline_data=kline_with_fractal,
+            bi_list=bi_list,
+            zhongshu_list=zhongshu_list,
+            buy_points=buy_points,
+            sell_points=sell_points,
+            current_state=current_state,
+        )
         
         return {
             "success": True,
@@ -706,9 +716,170 @@ class KlineServer:
             "buy_points": buy_points,
             "sell_points": sell_points,
             "current_state": current_state,
-            "capital_flow": capital_flow
+            "capital_flow": capital_flow,
+            "decision_analysis": decision_analysis
         }
     
+    def build_decision_analysis(
+        self,
+        symbol: str,
+        period: str,
+        kline_data: List[Dict[str, Any]],
+        bi_list: List[Dict[str, Any]],
+        zhongshu_list: List[Dict[str, Any]],
+        buy_points: List[Dict[str, Any]],
+        sell_points: List[Dict[str, Any]],
+        current_state: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        if not kline_data:
+            return {
+                "available": False,
+                "reason": "no_kline_data"
+            }
+
+        latest = kline_data[-1]
+        last_close = float(latest.get('close', 0) or 0)
+        last_fractal = next((item.get('fractal') for item in reversed(kline_data) if item.get('fractal')), None)
+        latest_zs = zhongshu_list[-1] if zhongshu_list else None
+        recent_bi = bi_list[-5:] if bi_list else []
+        up_bis = [b for b in recent_bi if b.get('type') == 'up']
+        down_bis = [b for b in recent_bi if b.get('type') == 'down']
+
+        def _seq(values: List[float]) -> Tuple[bool, bool]:
+            if len(values) < 2:
+                return False, False
+            rising = all(values[i] >= values[i - 1] for i in range(1, len(values)))
+            falling = all(values[i] <= values[i - 1] for i in range(1, len(values)))
+            return rising, falling
+
+        highs = [float(b.get('end_price', 0) or 0) for b in up_bis]
+        lows = [float(b.get('end_price', 0) or 0) for b in down_bis]
+        highs_rising, highs_falling = _seq(highs)
+        lows_rising, lows_falling = _seq(lows)
+
+        trend_structure = '中枢震荡'
+        strength = '中性'
+        trade_permission = 'observe_only'
+        setup_type = 'none'
+        position_advice = 'flat'
+        risk_level = '中'
+
+        if highs_rising and lows_rising:
+            trend_structure = '上涨趋势'
+            strength = '中强'
+            trade_permission = 'buy_allowed'
+            position_advice = 'half'
+            risk_level = '中'
+        elif highs_falling and lows_falling:
+            trend_structure = '下跌趋势'
+            strength = '弱'
+            trade_permission = 'buy_forbidden'
+            position_advice = 'flat'
+            risk_level = '高'
+
+        current_state_name = None
+        if current_state and current_state.get('current_state'):
+            mapping = {
+                '1B': 'buy1_try',
+                '2B': 'buy2_confirm',
+                '3B': 'buy3_follow',
+                'waiting': 'waiting',
+                'none': 'none',
+            }
+            setup_type = mapping.get(current_state.get('current_state'), 'none')
+            current_state_name = current_state.get('current_state')
+            if setup_type == 'buy1_try':
+                trade_permission = 'observe_only' if trade_permission == 'buy_forbidden' else 'buy_allowed'
+                position_advice = 'pilot'
+            elif setup_type == 'buy2_confirm':
+                trade_permission = 'buy_allowed'
+                position_advice = 'half' if trend_structure != '上涨趋势' else 'main'
+                strength = '强' if strength in ['中强', '中性'] else strength
+            elif setup_type == 'buy3_follow':
+                trade_permission = 'buy_allowed' if trend_structure == '上涨趋势' else 'observe_only'
+                position_advice = 'main' if trend_structure == '上涨趋势' else 'pilot'
+                risk_level = '中高' if trend_structure != '上涨趋势' else risk_level
+            elif setup_type == 'waiting':
+                trade_permission = 'observe_only'
+                position_advice = 'flat'
+
+        best_entry_zone = None
+        secondary_entry_zone = None
+        high_risk_zone = None
+        invalidation_level = None
+        target_zone_1 = None
+        target_zone_2 = None
+
+        if latest_zs:
+            zg = float(latest_zs.get('zg', 0) or 0)
+            zd = float(latest_zs.get('zd', 0) or 0)
+            center = (zg + zd) / 2 if zg and zd else 0
+            if zg and zd:
+                best_entry_zone = f"{zd:.2f} - {zg:.2f}"
+                secondary_entry_zone = f"{center:.2f} 附近确认"
+                high_risk_zone = f"> {zg:.2f} 后无确认追价"
+                invalidation_level = round(zd, 2)
+                target_zone_1 = round(zg * 1.03, 2)
+                target_zone_2 = round(zg * 1.06, 2)
+                if last_close > zg:
+                    strength = '强' if strength in ['中强', '中性'] else strength
+                elif last_close < zd:
+                    trade_permission = 'buy_forbidden'
+                    position_advice = 'flat'
+                    risk_level = '高'
+        else:
+            if recent_bi:
+                last_bi = recent_bi[-1]
+                start_price = float(last_bi.get('start_price', last_close) or last_close)
+                end_price = float(last_bi.get('end_price', last_close) or last_close)
+                lo = min(start_price, end_price)
+                hi = max(start_price, end_price)
+                best_entry_zone = f"{lo:.2f} - {hi:.2f} 回踩确认"
+                high_risk_zone = f"> {hi:.2f} 追涨区"
+                invalidation_level = round(lo, 2)
+                target_zone_1 = round(hi * 1.03, 2)
+                target_zone_2 = round(hi * 1.06, 2)
+
+        if last_fractal in ['strong_bottom', 'single_k_bottom'] and trade_permission != 'buy_forbidden':
+            strength = '强' if strength in ['中强', '中性', '中弱'] else strength
+        elif last_fractal in ['strong_top', 'single_k_top']:
+            risk_level = '高'
+
+        history_stats = {
+            'available': False,
+            'note': '历史胜率统计模块未接入，当前仅展示真实结构/决策分析，不展示伪造统计值。'
+        }
+
+        action_summary = (
+            f"当前{trend_structure}，强弱判定为{strength}，"
+            f"交易权限为{'可买' if trade_permission == 'buy_allowed' else '观察' if trade_permission == 'observe_only' else '不买'}。"
+            f"当前信号为{current_state_name or '无明确买点状态'}，"
+            f"仓位建议{position_advice}。"
+        )
+
+        return {
+            'available': True,
+            'symbol': symbol,
+            'period': period,
+            'last_close': round(last_close, 2),
+            'trend_structure': trend_structure,
+            'strength': strength,
+            'trade_permission': trade_permission,
+            'setup_type': setup_type,
+            'current_state': current_state_name,
+            'last_fractal': last_fractal,
+            'best_entry_zone': best_entry_zone,
+            'secondary_entry_zone': secondary_entry_zone,
+            'high_risk_zone': high_risk_zone,
+            'invalidation_level': invalidation_level,
+            'target_zone_1': target_zone_1,
+            'target_zone_2': target_zone_2,
+            'position_advice': position_advice,
+            'risk_level': risk_level,
+            'history_stats': history_stats,
+            'action_summary': action_summary,
+        }
+
     @staticmethod
     def _normalize_symbol(symbol: str) -> str:
         """标准化股票代码"""

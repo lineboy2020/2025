@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>缠论计算</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background-color: #131722; color: #d1d4dc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+        .layout { display: flex; flex-direction: column; height: 100vh; }
+        .header { height: 50px; border-bottom: 1px solid #2a2e39; display: flex; align-items: center; padding: 0 16px; background: #1e222d; justify-content: space-between; }
+        .controls { display: flex; gap: 12px; align-items: center; }
+        .input-group { display: flex; align-items: center; background: #2a2e39; border-radius: 4px; padding: 2px 8px; }
+        .input-group input { background: transparent; border: none; color: #fff; font-size: 14px; outline: none; width: 90px; text-transform: uppercase; }
+        .btn { cursor: pointer; padding: 6px 12px; border-radius: 4px; border: 1px solid #3a3e4e; background: #2a2e39; color: #d1d4dc; font-size: 12px; transition: all 0.2s; }
+        .btn:hover { background: #3a3e4e; border-color: #4a4e5e; }
+        .btn.active { background: #2962ff; border-color: #2962ff; color: #fff; }
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+        .chart-container { flex: 1; position: relative; }
+        #chart { width: 100%; height: 100%; }
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #868993; font-size: 14px; display: none; }
+        .toggle-group { display: flex; gap: 10px; font-size: 12px; color: #868993; align-items: center; }
+        .toggle-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
+        .status-bar { padding: 0 16px; height: 30px; display: flex; align-items: center; font-size: 12px; color: #868993; border-top: 1px solid #2a2e39; background: #1e222d; }
+        .logo { font-weight: bold; font-size: 14px; color: #2962ff; }
+        
+        /* 右侧面板 */
+        .state-panel { width: 320px; background: #1e222d; border-left: 1px solid #2a2e39; overflow-y: auto; display: flex; flex-direction: column; }
+        .panel-section { padding: 12px 16px; border-bottom: 1px solid #2a2e39; }
+        .panel-title { margin: 0 0 10px 0; font-size: 13px; color: #868993; display: flex; align-items: center; gap: 6px; }
+        .panel-title i { color: #2962ff; }
+        
+        /* 趋势分析样式 */
+        .trend-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: bold; }
+        .trend-up { background: linear-gradient(135deg, #ef5350 0%, #c62828 100%); color: #fff; }
+        .trend-down { background: linear-gradient(135deg, #26a69a 0%, #00695c 100%); color: #fff; }
+        .trend-consolidation { background: linear-gradient(135deg, #ff9800 0%, #e65100 100%); color: #fff; }
+        
+        .analysis-box { background: #252a3a; border-radius: 6px; padding: 10px; margin-top: 8px; }
+        .analysis-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .analysis-row:last-child { margin-bottom: 0; }
+        .analysis-row .label { color: #6a6d78; }
+        .analysis-row .value { color: #d1d4dc; }
+        .analysis-row .up { color: #ef5350; }
+        .analysis-row .down { color: #26a69a; }
+        .analysis-row .warning { color: #ff9800; }
+        .analysis-row .highlight { color: #2962ff; font-weight: 500; }
+        
+        .bi-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 4px; }
+        .bi-item.bi-up { border-left: 3px solid #ef5350; background: rgba(239, 83, 80, 0.1); }
+        .bi-item.bi-down { border-left: 3px solid #26a69a; background: rgba(38, 166, 154, 0.1); }
+        .bi-item .bi-num { color: #6a6d78; width: 24px; }
+        .bi-item .bi-dir { width: 20px; }
+        .bi-item .bi-price { flex: 1; color: #d1d4dc; }
+        .bi-item .bi-pct { width: 50px; text-align: right; }
+        
+        .zs-item { background: #252a3a; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
+        .zs-item:last-child { margin-bottom: 0; }
+        .zs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .zs-header .zs-label { color: #fff; font-size: 12px; font-weight: 500; }
+        .zs-header .zs-type { font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+        .zs-header .zs-type.expanding { background: #ef5350; color: #fff; }
+        .zs-header .zs-type.contracting { background: #26a69a; color: #fff; }
+        .zs-header .zs-type.neutral { background: #6a6d78; color: #fff; }
+        .zs-range { font-size: 11px; color: #868993; }
+        
+        .fractal-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+        .fractal-stat { flex: 1; min-width: 80px; background: #252a3a; border-radius: 6px; padding: 8px; text-align: center; }
+        .fractal-stat .count { font-size: 18px; font-weight: bold; color: #d1d4dc; }
+        .fractal-stat .name { font-size: 10px; color: #868993; margin-top: 2px; }
+        .fractal-stat.top .count { color: #26a69a; }
+        .fractal-stat.bottom .count { color: #ef5350; }
+        .fractal-stat.strong .count { color: #ffeb3b; }
+        
+        .suggestion-box { background: linear-gradient(135deg, #2962ff 0%, #1e3a8a 100%); border-radius: 8px; padding: 12px; margin-top: 10px; }
+        .suggestion-title { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+        .suggestion-text { font-size: 13px; color: #fff; line-height: 1.5; }
+        
+        .state-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+        .state-1B { background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%); color: #000; }
+        .state-2B { background: linear-gradient(135deg, #00ccff 0%, #0099cc 100%); color: #000; }
+        .state-3B { background: linear-gradient(135deg, #ff9900 0%, #cc7700 100%); color: #000; }
+        .state-waiting { background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%); color: #000; }
+        .state-none { background: #3a3e4e; color: #868993; }
+        
+        .state-info { font-size: 12px; color: #868993; line-height: 1.8; }
+        .state-info .label { color: #6a6d78; }
+        .state-info .value { color: #d1d4dc; font-weight: 500; }
+        .state-info .price { color: #f1c40f; }
+        .state-info .up { color: #ef5350; }
+        .state-info .down { color: #26a69a; }
+        
+        .confidence-bar { height: 6px; background: #2a2e39; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, #26a69a, #00ff00); border-radius: 3px; transition: width 0.3s ease; }
+        
+        .trade-suggestion { background: #2a2e39; border-radius: 8px; padding: 10px; margin-top: 8px; }
+        .trade-suggestion .row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+        .trade-suggestion .row:last-child { margin-bottom: 0; }
+        
+        .description-box { background: #252a3a; border-left: 3px solid #2962ff; padding: 8px 10px; font-size: 11px; line-height: 1.5; color: #a0a4b0; border-radius: 0 4px 4px 0; margin-top: 8px; }
+        
+        /* 买卖点列表 */
+        .point-list { max-height: 180px; overflow-y: auto; }
+        .point-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s; font-size: 12px; }
+        .point-item:hover { background: #2a2e39; }
+        .point-item.active { background: #2a2e39; border-left: 2px solid #2962ff; }
+        .point-badge { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; }
+        .point-badge.buy-1B { background: #00ff00; color: #000; }
+        .point-badge.buy-2B { background: #00ccff; color: #000; }
+        .point-badge.buy-3B { background: #ff9900; color: #000; }
+        .point-badge.sell-1S { background: #9b59b6; color: #fff; }
+        .point-badge.sell-2S { background: #8e44ad; color: #fff; }
+        .point-badge.sell-3S { background: #5b2c6f; color: #fff; }
+        .point-info { flex: 1; }
+        .point-date { color: #6a6d78; font-size: 10px; }
+        .point-price { color: #d1d4dc; }
+        .point-conf { font-size: 10px; color: #868993; }
+        
+        /* 选中详情 */
+        .selected-detail { background: #252a3a; border-radius: 8px; padding: 12px; margin-top: 8px; }
+        .selected-detail h4 { margin: 0 0 8px 0; font-size: 13px; color: #d1d4dc; }
+        .detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+        .detail-row .label { color: #6a6d78; }
+        .detail-row .value { color: #d1d4dc; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="header">
+            <div class="controls">
+                <span class="logo">📊 缠论计算</span>
+                <div class="input-group">
+                    <i class="fa-solid fa-search" style="color: #868993; font-size: 12px;"></i>
+                    <input type="text" id="symbol-input" placeholder="代码" value="000001.SZ" onkeydown="if(event.key==='Enter') loadData()">
+                </div>
+                <select id="period-select" class="btn" onchange="loadData()">
+                    <option value="daily">日线</option>
+                    <option value="weekly">周线</option>
+                    <option value="monthly">月线</option>
+                </select>
+                <button class="btn" onclick="loadData()"><i class="fa-solid fa-rotate"></i> 刷新</button>
+            </div>
+            <div class="toggle-group">
+                <label><input type="checkbox" id="toggle-bi" checked onchange="updateChart()"> 笔</label>
+                <label><input type="checkbox" id="toggle-fractal" checked onchange="updateChart()"> 分型</label>
+                <label><input type="checkbox" id="toggle-flow" checked onchange="updateChart()"> 资金流</label>
+                <label><input type="checkbox" id="toggle-zhongshu" checked onchange="updateChart()"> 中枢</label>
+                <label><input type="checkbox" id="toggle-buypoints" checked onchange="updateChart()"> 买点</label>
+                <label><input type="checkbox" id="toggle-sellpoints" checked onchange="updateChart()"> 卖点</label>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="chart-container">
+                <div id="chart"></div>
+                <div id="loading" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 加载中...</div>
+            </div>
+            <div class="state-panel" id="state-panel">
+                <!-- 趋势结构分析 -->
+                <div class="panel-section" id="trend-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-chart-line"></i> 趋势结构分析</div>
+                    <div id="trend-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 笔分析 -->
+                <div class="panel-section" id="bi-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-pen"></i> 笔分析 <span id="bi-count" style="color:#2962ff;">(0)</span></div>
+                    <div id="bi-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 中枢分析 -->
+                <div class="panel-section" id="zhongshu-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-layer-group"></i> 中枢分析 <span id="zs-count" style="color:#fff;">(0)</span></div>
+                    <div id="zhongshu-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 分型统计 -->
+                <div class="panel-section" id="fractal-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-shapes"></i> 分型统计</div>
+                    <div id="fractal-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 当前状态 -->
+                <div class="panel-section" id="current-state-section">
+                    <div class="panel-title"><i class="fa-solid fa-bullseye"></i> 当前买点状态</div>
+                    <div id="current-state-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 交易决策分析 -->
+                <div class="panel-section" id="decision-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-compass"></i> 交易决策分析</div>
+                    <div id="decision-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 买点列表 -->
+                <div class="panel-section">
+                    <div class="panel-title"><i class="fa-solid fa-arrow-trend-up"></i> 历史买点 <span id="buy-count" style="color:#00ff00;">(0)</span></div>
+                    <div class="point-list" id="buy-point-list"></div>
+                </div>
+                
+                <!-- 卖点列表 -->
+                <div class="panel-section">
+                    <div class="panel-title"><i class="fa-solid fa-arrow-trend-down"></i> 历史卖点 <span id="sell-count" style="color:#9b59b6;">(0)</span></div>
+                    <div class="point-list" id="sell-point-list"></div>
+                </div>
+                
+                <!-- 选中详情 -->
+                <div class="panel-section" id="selected-detail-section" style="display: none;">
+                    <div class="panel-title"><i class="fa-solid fa-info-circle"></i> 选中详情</div>
+                    <div id="selected-detail-content"></div>
+                </div>
+            </div>
+        </div>
+        <div class="status-bar" id="status-bar">
+            就绪 | 数据源: DuckDB | 
+            <span style="margin-left: 10px; font-size: 11px;">
+                分型图例: 
+                <span style="color:#ff1744">▲强底</span> 
+                <span style="color:#ef5350">△底</span> 
+                <span style="color:#00e676">▼强顶</span> 
+                <span style="color:#26a69a">▽顶</span> 
+                <span style="color:#ffeb3b">⚡单K</span>
+            </span>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全局变量 ====================
+        let chart;
+        let candleSeries;
+        let volumeSeries;
+        let flowSeries;  // 资金流向系列
+        let biSeriesList = [];
+        let zhongshuSeriesList = [];
+        
+        let cachedData = null;
+        let cachedBi = null;
+        let cachedBuyPoints = [];
+        let cachedSellPoints = [];
+        let cachedZhongshu = [];
+        let cachedCurrentState = null;
+        let cachedDecisionAnalysis = null;
+        let cachedCapitalFlow = [];  // 资金流向数据
+        
+        let selectedPoint = null;
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('code')) {
+                let code = params.get('code');
+                if (/^\d{6}$/.test(code)) {
+                    code = code.startsWith('6') ? code + '.SH' : code + '.SZ';
+                }
+                document.getElementById('symbol-input').value = code;
+            }
+            
+            initChart();
+            loadData();
+        });
+
+        function initChart() {
+            const container = document.getElementById('chart');
+            chart = LightweightCharts.createChart(container, {
+                layout: { background: { type: 'solid', color: '#131722' }, textColor: '#d1d4dc' },
+                grid: { vertLines: { color: '#2B2B43' }, horzLines: { color: '#2B2B43' } },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                rightPriceScale: { borderColor: '#2B2B43', scaleMargins: { top: 0.1, bottom: 0.3 } },
+                timeScale: { borderColor: '#2B2B43', timeVisible: true }
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#ef5350', downColor: '#26a69a', borderVisible: false, 
+                wickUpColor: '#ef5350', wickDownColor: '#26a69a'
+            });
+
+            volumeSeries = chart.addHistogramSeries({
+                priceFormat: { type: 'volume' },
+                priceScaleId: 'volume',
+            });
+            
+            // 资金流向系列（叠加在成交量上）
+            flowSeries = chart.addHistogramSeries({
+                priceFormat: { type: 'volume' },
+                priceScaleId: 'volume',
+            });
+            
+            chart.priceScale('volume').applyOptions({
+                scaleMargins: { top: 0.8, bottom: 0 }
+            });
+
+            // ResizeObserver
+            new ResizeObserver(entries => {
+                if (entries.length === 0 || entries[0].target !== container) return;
+                const newRect = entries[0].contentRect;
+                chart.applyOptions({ height: newRect.height, width: newRect.width });
+            }).observe(container);
+            
+            // 监听视口变化，重新应用 markers（修复滚动消失问题）
+            chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+                reapplyMarkers();
+            });
+        }
+
+        // ==================== 数据加载 ====================
+        async function loadData() {
+            const symbol = document.getElementById('symbol-input').value;
+            const period = document.getElementById('period-select').value;
+            const status = document.getElementById('status-bar');
+            const loading = document.getElementById('loading');
+
+            loading.style.display = 'block';
+            status.textContent = `正在加载 ${symbol}...`;
+
+            try {
+                // 使用本地 API，默认近1年数据（约250个交易日）
+                const res = await fetch(`/api/kline/${symbol}?period=${period}&limit=250&with_chanlun=true&with_flow=true`);
+                const json = await res.json();
+
+                if (!json.success) throw new Error(json.error || '未知错误');
+
+                cachedData = json.data;
+                cachedCapitalFlow = json.capital_flow || [];
+                cachedBi = json.bi || [];
+                cachedBuyPoints = json.buy_points || [];
+                cachedSellPoints = json.sell_points || [];
+                cachedZhongshu = json.zhongshu || [];
+                cachedCurrentState = json.current_state;
+                cachedDecisionAnalysis = json.decision_analysis || null;
+
+                // 设置 K 线数据
+                const candles = [];
+                const amounts = [];
+                
+                cachedData.forEach(item => {
+                    let time = parseTime(item.time, period);
+                    const amountValue = Number(item.amount || 0);
+                    candles.push({ time, open: item.open, high: item.high, low: item.low, close: item.close });
+                    amounts.push({ time, value: amountValue, color: item.close >= item.open ? 'rgba(239, 83, 80, 0.5)' : 'rgba(38, 166, 154, 0.5)' });
+                });
+
+                candleSeries.setData(candles);
+                volumeSeries.setData(amounts);
+
+                updateChart();
+                updateTrendAnalysis();
+                updateBiAnalysis();
+                updateZhongshuAnalysis();
+                updateFractalAnalysis();
+                updateStatePanel();
+                updateDecisionAnalysis();
+                updatePointLists();
+
+                const flowCount = cachedCapitalFlow.length;
+                // 统计分型
+                const fractalCount = cachedData.filter(x => x.fractal).length;
+                status.textContent = `已加载 ${symbol} - ${period} (${candles.length} 条) | 分型: ${fractalCount} | 笔: ${cachedBi.length} | 中枢: ${cachedZhongshu.length} | 买点: ${cachedBuyPoints.length} | 卖点: ${cachedSellPoints.length} | 资金流: ${flowCount}天`;
+                
+                const url = new URL(window.location);
+                url.searchParams.set('code', symbol);
+                window.history.pushState({}, '', url);
+
+            } catch (e) {
+                console.error(e);
+                status.textContent = `错误: ${e.message}`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function parseTime(time, period) {
+            if (!time) return null;
+            
+            // 如果已经是时间戳数字，直接返回
+            if (typeof time === 'number') return time;
+            
+            // 字符串格式处理
+            if (typeof time === 'string') {
+                // 分时数据 (包含空格，如 "2024-01-15 09:30:00")
+                if (time.includes(' ')) {
+                    return Math.floor(new Date(time).getTime() / 1000);
+                }
+                // 日线/周线/月线数据 (如 "2024-01-15" 或 "20240115")
+                if (time.includes('-')) {
+                    // "2024-01-15" 格式 - Lightweight Charts 可以直接使用
+                    return time;
+                }
+                // "20240115" 格式
+                if (/^\d{8}$/.test(time)) {
+                    return `${time.slice(0,4)}-${time.slice(4,6)}-${time.slice(6,8)}`;
+                }
+            }
+            
+            return time;
+        }
+        
+        // ==================== 资金流向更新 ====================
+        function updateCapitalFlowSeries(showFlow) {
+            // 先关闭副图中的资金流叠加，避免与成交额共轴导致显示失真。
+            // 后续如需恢复，建议改为单独副轴或单独面板展示。
+            flowSeries.setData([]);
+        }
+
+        // ==================== 图表更新 ====================
+        function updateChart() {
+            const showBi = document.getElementById('toggle-bi').checked;
+            const showFractal = document.getElementById('toggle-fractal').checked;
+            const showZhongshu = document.getElementById('toggle-zhongshu').checked;
+            const showBuyPoints = document.getElementById('toggle-buypoints').checked;
+            const showSellPoints = document.getElementById('toggle-sellpoints').checked;
+            const showFlow = document.getElementById('toggle-flow').checked;
+            
+            // 清除旧的系列
+            biSeriesList.forEach(s => chart.removeSeries(s));
+            biSeriesList = [];
+            zhongshuSeriesList.forEach(s => chart.removeSeries(s));
+            zhongshuSeriesList = [];
+
+            if (!cachedData) return;
+            
+            const period = document.getElementById('period-select').value;
+            
+            // ========== 绘制资金流向（叠加在成交量上）==========
+            updateCapitalFlowSeries(showFlow);
+
+            // ========== 绘制笔（上涨红/下跌绿，最后一笔虚线）==========
+            if (showBi && cachedBi && cachedBi.length > 0) {
+                const completedBis = cachedBi.slice(0, -1);
+                const lastBi = cachedBi[cachedBi.length - 1];
+                
+                // 辅助函数：获取笔的开始/结束时间
+                function getBiTime(bi, isStart) {
+                    if (isStart) {
+                        return bi.start_date || bi.start_dt;
+                    } else {
+                        return bi.end_date || bi.end_dt;
+                    }
+                }
+                
+                // 绘制已完成笔
+                completedBis.forEach(bi => {
+                    const t1Raw = getBiTime(bi, true);
+                    const t2Raw = getBiTime(bi, false);
+                    if (!t1Raw || !t2Raw) return;
+                    
+                    const color = bi.type === 'up' ? '#ef5350' : '#26a69a';
+                    const series = chart.addLineSeries({
+                        color: color,
+                        lineWidth: 2,
+                        lineStyle: LightweightCharts.LineStyle.Solid,
+                        priceLineVisible: false,
+                        lastValueVisible: false,
+                        crosshairMarkerVisible: false
+                    });
+                    const t1 = parseTime(t1Raw, period);
+                    const t2 = parseTime(t2Raw, period);
+                    if (t1 && t2) {
+                        series.setData([
+                            { time: t1, value: bi.start_price },
+                            { time: t2, value: bi.end_price }
+                        ]);
+                        biSeriesList.push(series);
+                    }
+                });
+                
+                // 最后一笔（未完成）- 虚线
+                if (lastBi) {
+                    const t1Raw = getBiTime(lastBi, true);
+                    const t2Raw = getBiTime(lastBi, false);
+                    if (t1Raw && t2Raw) {
+                        const lastBiSeries = chart.addLineSeries({
+                            color: lastBi.type === 'up' ? '#ef5350' : '#26a69a',
+                            lineWidth: 1,
+                            lineStyle: LightweightCharts.LineStyle.Dashed,
+                            priceLineVisible: false,
+                            lastValueVisible: false,
+                            crosshairMarkerVisible: false
+                        });
+                        const t1 = parseTime(t1Raw, period);
+                        const t2 = parseTime(t2Raw, period);
+                        if (t1 && t2) {
+                            lastBiSeries.setData([
+                                { time: t1, value: lastBi.start_price },
+                                { time: t2, value: lastBi.end_price }
+                            ]);
+                            biSeriesList.push(lastBiSeries);
+                        }
+                    }
+                }
+            }
+
+            // ========== 绘制中枢（上下水平虚线）==========
+            if (showZhongshu && cachedZhongshu && cachedZhongshu.length > 0) {
+                cachedZhongshu.forEach(zs => {
+                    if (!zs.start_date || !zs.end_date) return;
+                    const t1 = parseTime(zs.start_date, period);
+                    const t2 = parseTime(zs.end_date, period);
+                    if (!t1 || !t2) return;
+                    
+                    const zg = zs.zg; // 中枢上沿
+                    const zd = zs.zd; // 中枢下沿
+                    if (!zg || !zd) return;
+                    
+                    // 上沿线
+                    const topLine = chart.addLineSeries({
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        lineWidth: 1,
+                        lineStyle: LightweightCharts.LineStyle.Dotted,
+                        priceLineVisible: false,
+                        lastValueVisible: false,
+                        crosshairMarkerVisible: false
+                    });
+                    topLine.setData([
+                        { time: t1, value: zg },
+                        { time: t2, value: zg }
+                    ]);
+                    zhongshuSeriesList.push(topLine);
+                    
+                    // 下沿线
+                    const bottomLine = chart.addLineSeries({
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        lineWidth: 1,
+                        lineStyle: LightweightCharts.LineStyle.Dotted,
+                        priceLineVisible: false,
+                        lastValueVisible: false,
+                        crosshairMarkerVisible: false
+                    });
+                    bottomLine.setData([
+                        { time: t1, value: zd },
+                        { time: t2, value: zd }
+                    ]);
+                    zhongshuSeriesList.push(bottomLine);
+                });
+            }
+
+            // 更新 markers
+            reapplyMarkers();
+        }
+
+        // ==================== Markers（分型、买卖点）====================
+        let cachedMarkers = [];
+        
+        function reapplyMarkers() {
+            const showFractal = document.getElementById('toggle-fractal').checked;
+            const showBuyPoints = document.getElementById('toggle-buypoints').checked;
+            const showSellPoints = document.getElementById('toggle-sellpoints').checked;
+            
+            if (!cachedData) return;
+            
+            const period = document.getElementById('period-select').value;
+            const markers = [];
+
+            // 分型标记 - 4种分型不同样式
+            // strong_top: 强顶分型 - 绿色实心▼
+            // top: 普通顶分型 - 绿色空心▽
+            // strong_bottom: 强底分型 - 红色实心▲
+            // bottom: 普通底分型 - 红色空心△
+            if (showFractal) {
+                cachedData.forEach(item => {
+                    if (item.fractal) {
+                        const time = parseTime(item.time, period);
+                        const fractalType = item.fractal;
+                        
+                        // 定义6种分型的样式
+                        // 4种标准分型 + 2种单K反转分型
+                        const fractalStyles = {
+                            'strong_top': { 
+                                position: 'aboveBar', 
+                                color: '#00e676',  // 亮绿
+                                shape: 'arrowDown',
+                                text: '▼',
+                                size: 2
+                            },
+                            'top': { 
+                                position: 'aboveBar', 
+                                color: '#26a69a',  // 深绿
+                                shape: 'arrowDown',
+                                text: '▽',
+                                size: 1
+                            },
+                            'strong_bottom': { 
+                                position: 'belowBar', 
+                                color: '#ff1744',  // 亮红
+                                shape: 'arrowUp',
+                                text: '▲',
+                                size: 2
+                            },
+                            'bottom': { 
+                                position: 'belowBar', 
+                                color: '#ef5350',  // 深红
+                                shape: 'arrowUp',
+                                text: '△',
+                                size: 1
+                            },
+                            'single_k_top': { 
+                                position: 'aboveBar', 
+                                color: '#ffeb3b',  // 黄色
+                                shape: 'arrowDown',
+                                text: '⚡',
+                                size: 2
+                            },
+                            'single_k_bottom': { 
+                                position: 'belowBar', 
+                                color: '#ffeb3b',  // 黄色
+                                shape: 'arrowUp',
+                                text: '⚡',
+                                size: 2
+                            }
+                        };
+                        
+                        const style = fractalStyles[fractalType];
+                        if (style) {
+                            markers.push({
+                                time: time,
+                                position: style.position,
+                                color: style.color,
+                                shape: style.shape,
+                                text: style.text,
+                                size: style.size
+                            });
+                        }
+                    }
+                });
+            }
+
+            // 买点标记
+            if (showBuyPoints && cachedBuyPoints.length > 0) {
+                cachedBuyPoints.forEach(bp => {
+                    const time = parseTime(bp.date, period);
+                    const typeMap = { '1B': '①', '2B': '②', '3B': '③' };
+                    const colorMap = { '1B': '#00ff00', '2B': '#00ccff', '3B': '#ff9900' };
+                    
+                    markers.push({
+                        time: time,
+                        position: 'belowBar',
+                        color: bp.is_confirmed ? colorMap[bp.type] : (colorMap[bp.type] || '#00ff00') + '99',
+                        shape: 'circle',
+                        text: typeMap[bp.type] || bp.type,
+                        size: bp.is_confirmed ? 2 : 1
+                    });
+                });
+            }
+
+            // 卖点标记
+            if (showSellPoints && cachedSellPoints.length > 0) {
+                cachedSellPoints.forEach(sp => {
+                    const time = parseTime(sp.date, period);
+                    const typeMap = { '1S': '❶', '2S': '❷', '3S': '❸' };
+                    const colorMap = { '1S': '#9b59b6', '2S': '#8e44ad', '3S': '#5b2c6f' };
+                    
+                    markers.push({
+                        time: time,
+                        position: 'aboveBar',
+                        color: sp.is_confirmed ? colorMap[sp.type] : (colorMap[sp.type] || '#9b59b6') + '99',
+                        shape: 'circle',
+                        text: typeMap[sp.type] || sp.type,
+                        size: sp.is_confirmed ? 2 : 1
+                    });
+                });
+            }
+
+            // 按时间排序
+            markers.sort((a, b) => {
+                if (typeof a.time === 'string' && typeof b.time === 'string') {
+                    return a.time.localeCompare(b.time);
+                }
+                return a.time - b.time;
+            });
+            cachedMarkers = markers;
+            candleSeries.setMarkers(markers);
+        }
+
+        // ==================== 右侧面板更新 ====================
+        function updateStatePanel() {
+            const container = document.getElementById('current-state-content');
+            
+            if (!cachedCurrentState) {
+                container.innerHTML = '<div class="state-info">暂无状态数据</div>';
+                return;
+            }
+
+            const state = cachedCurrentState;
+            const stateNames = { '1B': '一买形成区', '2B': '二买形成区', '3B': '三买形成区', 'waiting': '等待回调', 'none': '无买点信号' };
+            const stateClass = `state-${state.current_state}`;
+            const confidencePct = Math.round((state.confidence || 0) * 100);
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <span class="state-badge ${stateClass}">
+                        <i class="fa-solid fa-bullseye"></i>
+                        ${stateNames[state.current_state] || state.current_state}
+                    </span>
+                </div>
+                <div class="state-info">
+                    <div><span class="label">置信度：</span><span class="value">${confidencePct}%</span></div>
+                    <div class="confidence-bar"><div class="confidence-fill" style="width: ${confidencePct}%"></div></div>
+                </div>
+            `;
+
+            if (state.trigger_price || state.stop_loss || state.target_price) {
+                html += `
+                    <div class="trade-suggestion">
+                        <div class="row"><span class="label">建议入场</span><span class="price">${state.trigger_price ? state.trigger_price.toFixed(2) : '-'}</span></div>
+                        <div class="row"><span class="label">止损位</span><span class="down">${state.stop_loss ? state.stop_loss.toFixed(2) : '-'}</span></div>
+                        <div class="row"><span class="label">目标位</span><span class="up">${state.target_price ? state.target_price.toFixed(2) : '-'}</span></div>
+                    </div>
+                `;
+            }
+
+            if (state.description) {
+                html += `<div class="description-box">${state.description}</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateDecisionAnalysis() {
+            const container = document.getElementById('decision-analysis-content');
+
+            if (!cachedDecisionAnalysis || !cachedDecisionAnalysis.available) {
+                container.innerHTML = '<div class="state-info">暂无决策分析数据</div>';
+                return;
+            }
+
+            const d = cachedDecisionAnalysis;
+            const permissionText = {
+                buy_allowed: '可买',
+                observe_only: '观察',
+                buy_forbidden: '不买'
+            };
+            const adviceText = {
+                pilot: '试错仓',
+                half: '半仓',
+                main: '主仓',
+                reduce: '减仓',
+                flat: '空仓'
+            };
+            const setupText = {
+                buy1_try: '1买试错',
+                buy2_confirm: '2买确认',
+                buy3_follow: '3买跟随',
+                waiting: '等待',
+                none: '无'
+            };
+
+            container.innerHTML = `
+                <div class="analysis-box" style="margin-top:0;">
+                    <div class="analysis-row"><span class="label">趋势结构</span><span class="value highlight">${d.trend_structure || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">强弱评级</span><span class="value">${d.strength || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">交易权限</span><span class="value ${d.trade_permission === 'buy_allowed' ? 'up' : d.trade_permission === 'buy_forbidden' ? 'down' : 'warning'}">${permissionText[d.trade_permission] || d.trade_permission || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">当前信号</span><span class="value">${setupText[d.setup_type] || d.setup_type || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">仓位建议</span><span class="value">${adviceText[d.position_advice] || d.position_advice || '-'}</span></div>
+                    <div class="analysis-row"><span class="label">风险级别</span><span class="value ${d.risk_level === '高' ? 'down' : d.risk_level === '中高' ? 'warning' : ''}">${d.risk_level || '-'}</span></div>
+                </div>
+                <div class="trade-suggestion">
+                    <div class="row"><span class="label">最优买点</span><span class="value">${d.best_entry_zone || '-'}</span></div>
+                    <div class="row"><span class="label">次优买点</span><span class="value">${d.secondary_entry_zone || '-'}</span></div>
+                    <div class="row"><span class="label">高风险区域</span><span class="value warning">${d.high_risk_zone || '-'}</span></div>
+                    <div class="row"><span class="label">失效位</span><span class="down">${d.invalidation_level ?? '-'}</span></div>
+                    <div class="row"><span class="label">目标位1</span><span class="up">${d.target_zone_1 ?? '-'}</span></div>
+                    <div class="row"><span class="label">目标位2</span><span class="up">${d.target_zone_2 ?? '-'}</span></div>
+                </div>
+                <div class="description-box">${d.action_summary || '-'}</div>
+                <div class="analysis-box">
+                    <div class="analysis-row"><span class="label">历史胜率</span><span class="value warning">待真实统计模块接入</span></div>
+                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${(d.history_stats && d.history_stats.note) ? d.history_stats.note : '当前仅展示真实结构/决策分析。'}</div>
+                </div>
+            `;
+        }
+
+        function updatePointLists() {
+            // 买点列表
+            const buyList = document.getElementById('buy-point-list');
+            document.getElementById('buy-count').textContent = `(${cachedBuyPoints.length})`;
+            
+            if (cachedBuyPoints.length === 0) {
+                buyList.innerHTML = '<div class="state-info" style="padding: 8px;">暂无买点</div>';
+            } else {
+                buyList.innerHTML = cachedBuyPoints.map((bp, idx) => `
+                    <div class="point-item" onclick="selectPoint('buy', ${idx})">
+                        <div class="point-badge buy-${bp.type}">${bp.type}</div>
+                        <div class="point-info">
+                            <div class="point-price">${bp.price ? bp.price.toFixed(2) : '-'}</div>
+                            <div class="point-date">${bp.date || '-'}</div>
+                        </div>
+                        <div class="point-conf">${Math.round((bp.confidence || 0) * 100)}%</div>
+                    </div>
+                `).join('');
+            }
+            
+            // 卖点列表
+            const sellList = document.getElementById('sell-point-list');
+            document.getElementById('sell-count').textContent = `(${cachedSellPoints.length})`;
+            
+            if (cachedSellPoints.length === 0) {
+                sellList.innerHTML = '<div class="state-info" style="padding: 8px;">暂无卖点</div>';
+            } else {
+                sellList.innerHTML = cachedSellPoints.map((sp, idx) => `
+                    <div class="point-item" onclick="selectPoint('sell', ${idx})">
+                        <div class="point-badge sell-${sp.type}">${sp.type}</div>
+                        <div class="point-info">
+                            <div class="point-price">${sp.price ? sp.price.toFixed(2) : '-'}</div>
+                            <div class="point-date">${sp.date || '-'}</div>
+                        </div>
+                        <div class="point-conf">${Math.round((sp.confidence || 0) * 100)}%</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function selectPoint(type, idx) {
+            const points = type === 'buy' ? cachedBuyPoints : cachedSellPoints;
+            const point = points[idx];
+            if (!point) return;
+            
+            selectedPoint = { type, idx, data: point };
+            
+            // 高亮列表项
+            document.querySelectorAll('.point-item').forEach(el => el.classList.remove('active'));
+            const listId = type === 'buy' ? 'buy-point-list' : 'sell-point-list';
+            const items = document.getElementById(listId).querySelectorAll('.point-item');
+            if (items[idx]) items[idx].classList.add('active');
+            
+            // 显示详情
+            const detailSection = document.getElementById('selected-detail-section');
+            const detailContent = document.getElementById('selected-detail-content');
+            detailSection.style.display = 'block';
+            
+            const typeNames = { '1B': '一买', '2B': '二买', '3B': '三买', '1S': '一卖', '2S': '二卖', '3S': '三卖' };
+            
+            detailContent.innerHTML = `
+                <div class="selected-detail">
+                    <h4>${typeNames[point.type] || point.type} @ ${point.price ? point.price.toFixed(2) : '-'}</h4>
+                    <div class="detail-row"><span class="label">类型</span><span class="value">${point.type}</span></div>
+                    <div class="detail-row"><span class="label">价格</span><span class="value">${point.price ? point.price.toFixed(2) : '-'}</span></div>
+                    <div class="detail-row"><span class="label">日期</span><span class="value">${point.date || '-'}</span></div>
+                    <div class="detail-row"><span class="label">置信度</span><span class="value">${Math.round((point.confidence || 0) * 100)}%</span></div>
+                    <div class="detail-row"><span class="label">已确认</span><span class="value">${point.is_confirmed ? '是' : '否'}</span></div>
+                    ${point.divergence_score > 0 ? `<div class="detail-row"><span class="label">背驰评分</span><span class="value">${point.divergence_score.toFixed(2)}</span></div>` : ''}
+                    ${point.related_zhongshu !== null && point.related_zhongshu !== undefined ? `<div class="detail-row"><span class="label">关联中枢</span><span class="value">#${point.related_zhongshu + 1}</span></div>` : ''}
+                </div>
+            `;
+        }
+        
+        // ==================== 趋势结构分析 ====================
+        function updateTrendAnalysis() {
+            const container = document.getElementById('trend-analysis-content');
+            
+            if (!cachedBi || cachedBi.length < 3) {
+                container.innerHTML = '<div class="state-info">笔数不足，无法分析趋势</div>';
+                return;
+            }
+            
+            // 分析最近3/5/8笔
+            const recent3 = cachedBi.slice(-3);
+            const recent5 = cachedBi.slice(-5);
+            const recent8 = cachedBi.slice(-8);
+            
+            // 判断趋势方向
+            const lastBi = cachedBi[cachedBi.length - 1];
+            const lastDirection = lastBi.type === 'up' ? '上涨' : '下跌';
+            
+            // 计算高低点趋势
+            const upBis = recent5.filter(b => b.type === 'up');
+            const downBis = recent5.filter(b => b.type === 'down');
+            
+            let trendType = 'consolidation';
+            let trendName = '震荡整理';
+            let suggestion = '';
+            
+            // 高点递增判断
+            const highs = upBis.map(b => b.end_price);
+            const lows = downBis.map(b => b.end_price);
+            const highsRising = highs.length >= 2 && highs.every((v, i) => i === 0 || v >= highs[i-1]);
+            const lowsRising = lows.length >= 2 && lows.every((v, i) => i === 0 || v >= lows[i-1]);
+            const highsFalling = highs.length >= 2 && highs.every((v, i) => i === 0 || v <= highs[i-1]);
+            const lowsFalling = lows.length >= 2 && lows.every((v, i) => i === 0 || v <= lows[i-1]);
+            
+            if (highsRising && lowsRising) {
+                trendType = 'up';
+                trendName = '上涨趋势';
+                suggestion = '高点低点依次抬高，趋势健康。等待回调到支撑位附近可考虑介入。';
+            } else if (highsFalling && lowsFalling) {
+                trendType = 'down';
+                trendName = '下跌趋势';
+                suggestion = '高点低点依次降低，保持观望。等待底分型确认后再考虑。';
+            } else {
+                trendType = 'consolidation';
+                trendName = '震荡整理';
+                suggestion = '无明显趋势，等待方向选择。关注中枢突破方向。';
+            }
+            
+            // 最近一笔涨跌幅
+            const lastBiPct = ((lastBi.end_price - lastBi.start_price) / lastBi.start_price * 100).toFixed(2);
+            
+            // 平均笔长度（交易日）
+            const avgBiDays = Math.round(cachedData.length / cachedBi.length);
+            
+            let html = `
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <span class="trend-badge trend-${trendType}">
+                        <i class="fa-solid fa-${trendType === 'up' ? 'arrow-trend-up' : trendType === 'down' ? 'arrow-trend-down' : 'arrows-left-right'}"></i>
+                        ${trendName}
+                    </span>
+                </div>
+                <div class="analysis-box">
+                    <div class="analysis-row">
+                        <span class="label">当前笔方向</span>
+                        <span class="value ${lastBi.type === 'up' ? 'up' : 'down'}">${lastDirection} (${lastBiPct}%)</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">总笔数</span>
+                        <span class="value">${cachedBi.length} 根</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">平均笔周期</span>
+                        <span class="value">${avgBiDays} 天/笔</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">中枢数量</span>
+                        <span class="value">${cachedZhongshu.length} 个</span>
+                    </div>
+                </div>
+                <div class="suggestion-box">
+                    <div class="suggestion-title"><i class="fa-solid fa-lightbulb"></i> 操作建议</div>
+                    <div class="suggestion-text">${suggestion}</div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // ==================== 笔分析 ====================
+        function updateBiAnalysis() {
+            const container = document.getElementById('bi-analysis-content');
+            document.getElementById('bi-count').textContent = `(${cachedBi ? cachedBi.length : 0})`;
+            
+            if (!cachedBi || cachedBi.length === 0) {
+                container.innerHTML = '<div class="state-info">暂无笔数据</div>';
+                return;
+            }
+            
+            // 分析最近5笔
+            const recent5 = cachedBi.slice(-5);
+            const biAnalysis = analyzeBiPattern(recent5);
+            
+            let html = `
+                <div class="analysis-box" style="margin-top: 0;">
+                    <div class="analysis-row">
+                        <span class="label">最近5笔模式</span>
+                        <span class="value ${biAnalysis.class}">${biAnalysis.pattern}</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">力度对比</span>
+                        <span class="value">${biAnalysis.strength}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 8px; font-size: 11px; color: #6a6d78;">最近5笔详情：</div>
+            `;
+            
+            // 显示最近5笔
+            recent5.forEach((bi, idx) => {
+                const pct = ((bi.end_price - bi.start_price) / bi.start_price * 100).toFixed(2);
+                const isUp = bi.type === 'up';
+                const num = cachedBi.length - recent5.length + idx + 1;
+                
+                html += `
+                    <div class="bi-item ${isUp ? 'bi-up' : 'bi-down'}">
+                        <span class="bi-num">#${num}</span>
+                        <span class="bi-dir">${isUp ? '↑' : '↓'}</span>
+                        <span class="bi-price">${bi.start_price.toFixed(2)} → ${bi.end_price.toFixed(2)}</span>
+                        <span class="bi-pct ${isUp ? 'up' : 'down'}">${pct}%</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function analyzeBiPattern(bis) {
+            if (bis.length < 3) return { pattern: '数据不足', strength: '-', class: '' };
+            
+            const recent3 = bis.slice(-3);
+            const dirs = recent3.map(b => b.type);
+            
+            // 判断模式
+            let pattern = '';
+            let cls = '';
+            
+            if (dirs[0] === 'down' && dirs[1] === 'up' && dirs[2] === 'down') {
+                // 下-上-下
+                if (recent3[2].end_price > recent3[0].end_price) {
+                    pattern = '反弹受阻，但低点抬高';
+                    cls = 'warning';
+                } else {
+                    pattern = '下跌延续，新低形成';
+                    cls = 'down';
+                }
+            } else if (dirs[0] === 'up' && dirs[1] === 'down' && dirs[2] === 'up') {
+                // 上-下-上
+                if (recent3[2].end_price > recent3[0].end_price) {
+                    pattern = '上涨延续，新高形成';
+                    cls = 'up';
+                } else {
+                    pattern = '反弹乏力，高点降低';
+                    cls = 'warning';
+                }
+            } else {
+                pattern = dirs.map(d => d === 'up' ? '涨' : '跌').join('-');
+                cls = '';
+            }
+            
+            // 力度对比（比较最近两笔同向笔的幅度）
+            const upBis = bis.filter(b => b.type === 'up');
+            const downBis = bis.filter(b => b.type === 'down');
+            
+            let strength = '';
+            if (upBis.length >= 2) {
+                const last2Up = upBis.slice(-2);
+                const pct1 = Math.abs((last2Up[0].end_price - last2Up[0].start_price) / last2Up[0].start_price * 100);
+                const pct2 = Math.abs((last2Up[1].end_price - last2Up[1].start_price) / last2Up[1].start_price * 100);
+                if (pct2 > pct1 * 1.2) strength = '上涨力度增强 ↑';
+                else if (pct2 < pct1 * 0.8) strength = '上涨力度减弱 ⚠️';
+                else strength = '上涨力度持平';
+            } else if (downBis.length >= 2) {
+                const last2Down = downBis.slice(-2);
+                const pct1 = Math.abs((last2Down[0].end_price - last2Down[0].start_price) / last2Down[0].start_price * 100);
+                const pct2 = Math.abs((last2Down[1].end_price - last2Down[1].start_price) / last2Down[1].start_price * 100);
+                if (pct2 > pct1 * 1.2) strength = '下跌力度增强 ↓';
+                else if (pct2 < pct1 * 0.8) strength = '下跌力度减弱 ✓';
+                else strength = '下跌力度持平';
+            } else {
+                strength = '数据不足';
+            }
+            
+            return { pattern, strength, class: cls };
+        }
+        
+        // ==================== 中枢分析 ====================
+        function updateZhongshuAnalysis() {
+            const container = document.getElementById('zhongshu-analysis-content');
+            document.getElementById('zs-count').textContent = `(${cachedZhongshu ? cachedZhongshu.length : 0})`;
+            
+            if (!cachedZhongshu || cachedZhongshu.length === 0) {
+                container.innerHTML = '<div class="state-info">暂无中枢</div>';
+                return;
+            }
+            
+            // 分析中枢演进
+            let zsEvolution = '';
+            if (cachedZhongshu.length >= 2) {
+                const zsList = cachedZhongshu.slice(-3);
+                const centers = zsList.map(zs => (zs.zg + zs.zd) / 2);
+                
+                if (centers.length >= 2) {
+                    const rising = centers.every((v, i) => i === 0 || v >= centers[i-1]);
+                    const falling = centers.every((v, i) => i === 0 || v <= centers[i-1]);
+                    
+                    if (rising) zsEvolution = '中枢上移，上涨格局';
+                    else if (falling) zsEvolution = '中枢下移，下跌格局';
+                    else zsEvolution = '中枢震荡，方向不明';
+                }
+            } else {
+                zsEvolution = '单一中枢，等待演化';
+            }
+            
+            // 当前价格与最新中枢的关系
+            const lastZs = cachedZhongshu[cachedZhongshu.length - 1];
+            const lastPrice = cachedData[cachedData.length - 1].close;
+            let pricePosition = '';
+            let positionClass = '';
+            
+            if (lastPrice > lastZs.zg) {
+                pricePosition = '突破中枢上沿';
+                positionClass = 'up';
+            } else if (lastPrice < lastZs.zd) {
+                pricePosition = '跌破中枢下沿';
+                positionClass = 'down';
+            } else {
+                pricePosition = '中枢区间内';
+                positionClass = 'warning';
+            }
+            
+            let html = `
+                <div class="analysis-box" style="margin-top: 0;">
+                    <div class="analysis-row">
+                        <span class="label">中枢演进</span>
+                        <span class="value">${zsEvolution}</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">当前位置</span>
+                        <span class="value ${positionClass}">${pricePosition}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 8px; font-size: 11px; color: #6a6d78;">中枢列表：</div>
+            `;
+            
+            // 显示中枢列表（最近3个）
+            const recentZs = cachedZhongshu.slice(-3);
+            recentZs.forEach((zs, idx) => {
+                const zsWidth = ((zs.zg - zs.zd) / zs.zd * 100).toFixed(2);
+                const num = cachedZhongshu.length - recentZs.length + idx + 1;
+                
+                // 判断中枢类型
+                let zsType = 'neutral';
+                let zsTypeName = '标准';
+                if (zsWidth > 5) {
+                    zsType = 'expanding';
+                    zsTypeName = '扩张';
+                } else if (zsWidth < 2) {
+                    zsType = 'contracting';
+                    zsTypeName = '收敛';
+                }
+                
+                html += `
+                    <div class="zs-item">
+                        <div class="zs-header">
+                            <span class="zs-label">中枢 #${num}</span>
+                            <span class="zs-type ${zsType}">${zsTypeName} ${zsWidth}%</span>
+                        </div>
+                        <div class="zs-range">
+                            上沿: <span class="up">${zs.zg.toFixed(2)}</span> | 
+                            下沿: <span class="down">${zs.zd.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // ==================== 分型统计 ====================
+        function updateFractalAnalysis() {
+            const container = document.getElementById('fractal-analysis-content');
+            
+            if (!cachedData) {
+                container.innerHTML = '<div class="state-info">暂无数据</div>';
+                return;
+            }
+            
+            // 统计各类分型
+            const fractals = cachedData.filter(x => x.fractal);
+            const stats = {
+                strong_top: fractals.filter(x => x.fractal === 'strong_top').length,
+                top: fractals.filter(x => x.fractal === 'top').length,
+                strong_bottom: fractals.filter(x => x.fractal === 'strong_bottom').length,
+                bottom: fractals.filter(x => x.fractal === 'bottom').length,
+                single_k_top: fractals.filter(x => x.fractal === 'single_k_top').length,
+                single_k_bottom: fractals.filter(x => x.fractal === 'single_k_bottom').length
+            };
+            
+            const totalTop = stats.strong_top + stats.top + stats.single_k_top;
+            const totalBottom = stats.strong_bottom + stats.bottom + stats.single_k_bottom;
+            
+            // 最近一个分型
+            const lastFractal = fractals.length > 0 ? fractals[fractals.length - 1] : null;
+            const lastFractalName = {
+                'strong_top': '强顶分型',
+                'top': '顶分型',
+                'strong_bottom': '强底分型',
+                'bottom': '底分型',
+                'single_k_top': '单K顶',
+                'single_k_bottom': '单K底'
+            };
+            
+            let html = `
+                <div class="fractal-stats">
+                    <div class="fractal-stat top">
+                        <div class="count">${totalTop}</div>
+                        <div class="name">顶分型</div>
+                    </div>
+                    <div class="fractal-stat bottom">
+                        <div class="count">${totalBottom}</div>
+                        <div class="name">底分型</div>
+                    </div>
+                    <div class="fractal-stat strong">
+                        <div class="count">${stats.strong_top + stats.strong_bottom}</div>
+                        <div class="name">强分型</div>
+                    </div>
+                </div>
+                <div class="analysis-box" style="margin-top: 10px;">
+                    <div class="analysis-row">
+                        <span class="label">分型总数</span>
+                        <span class="value">${fractals.length}</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">顶/底比例</span>
+                        <span class="value">${totalTop}:${totalBottom}</span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">最近分型</span>
+                        <span class="value ${lastFractal && lastFractal.fractal.includes('top') ? 'down' : 'up'}">
+                            ${lastFractal ? lastFractalName[lastFractal.fractal] || lastFractal.fractal : '-'}
+                        </span>
+                    </div>
+                    <div class="analysis-row">
+                        <span class="label">单K反转</span>
+                        <span class="value warning">${stats.single_k_top + stats.single_k_bottom}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
