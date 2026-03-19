@@ -472,21 +472,29 @@ class EODFullUpdater:
 
             if qingxu_path.exists():
                 qingxu_df = pd.read_parquet(qingxu_path)
-                today_data = qingxu_df[qingxu_df['tradeDate'] == pd.Timestamp(self.trade_date)]
-                if not today_data.empty:
-                    features['rise_ratio'] = today_data.iloc[0]['rise_ratio']
-                    features['limit_up_count'] = today_data.iloc[0]['limit_up_count']
-                    features['limit_down_count'] = today_data.iloc[0]['limit_down_count']
+                if 'tradeDate' in qingxu_df.columns:
+                    qingxu_df['tradeDate'] = pd.to_datetime(qingxu_df['tradeDate'], errors='coerce').dt.strftime('%Y-%m-%d')
+                    today_data = qingxu_df[qingxu_df['tradeDate'] == str(self.trade_date)]
+                    if not today_data.empty:
+                        features['rise_ratio'] = float(today_data.iloc[0]['rise_ratio']) if pd.notna(today_data.iloc[0]['rise_ratio']) else None
+                        features['limit_up_count'] = int(today_data.iloc[0]['limit_up_count']) if pd.notna(today_data.iloc[0]['limit_up_count']) else None
+                        features['limit_down_count'] = int(today_data.iloc[0]['limit_down_count']) if pd.notna(today_data.iloc[0]['limit_down_count']) else None
 
             if limit_up_path.exists():
                 limit_df = pd.read_parquet(limit_up_path)
                 if not limit_df.empty and 'trade_date' in limit_df.columns:
-                    today_limit = limit_df[limit_df['trade_date'].astype(str) == str(self.trade_date)]
-                    if not today_limit.empty and 'continuous_boards' in today_limit.columns:
-                        series = pd.to_numeric(today_limit['continuous_boards'], errors='coerce').dropna()
-                        if not series.empty:
-                            features['max_continuous_boards'] = float(series.max())
-                            features['avg_continuous_boards'] = float(series.mean())
+                    limit_df['trade_date'] = pd.to_datetime(limit_df['trade_date'], errors='coerce').dt.strftime('%Y-%m-%d')
+                    today_limit = limit_df[limit_df['trade_date'] == str(self.trade_date)].copy()
+                    if not today_limit.empty:
+                        if 'is_first_limit_up' in today_limit.columns:
+                            first_series = today_limit['is_first_limit_up'].fillna(False).astype(bool)
+                            features['first_limit_count'] = int(first_series.sum())
+                        if 'continuous_boards' in today_limit.columns:
+                            series = pd.to_numeric(today_limit['continuous_boards'], errors='coerce').dropna()
+                            if not series.empty:
+                                features['max_continuous_boards'] = float(series.max())
+                                features['avg_continuous_boards'] = float(series.mean())
+                                features['continuous_limit_count'] = int((series >= 2).sum())
 
             if not features:
                 self.log("⚠️ 无特征数据可更新")
