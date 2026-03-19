@@ -1,0 +1,15 @@
+{
+  "scheduled_tasks": {
+    "description": "盘后数据全量更新定时任务 - 交易日收盘后自动运行",
+    "tasks": [
+      {
+        "name": "eod-full-update-daily",
+        "description": "盘后数据全量更新",
+        "schedule": "30 16 * * 1-5",
+        "tz": "Asia/Shanghai",
+        "command": "cd /root/.openclaw/workspace/skills/eod-full-update && python3 scripts/run_eod_with_kline_guard.py",
+        "active": true
+      }
+    ]
+  }
+}
