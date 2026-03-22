@@ -861,6 +861,8 @@ class KlineServer:
             last_bp = buy_points[-1] if buy_points else None
             if not last_bp:
                 return {
+                    'window_policy': 'fixed_250',
+                    'window_policy_zh': '固定250根K线主判定',
                     'mode': None,
                     'mode_zh': '无明确123买模式',
                     'stage': 'none',
@@ -874,34 +876,39 @@ class KlineServer:
             div_score = float(last_bp.get('divergence_score', 0) or 0)
             confidence = float(last_bp.get('confidence', 0) or 0)
             fractal_is_strong = last_fractal in ['strong_bottom', 'single_k_bottom']
+            buy1_standard = bp_type == '1B' and is_confirmed and div_score > 0
 
             if bp_type == '1B':
-                if is_confirmed and div_score > 0:
+                if buy1_standard:
                     stage = 'confirmed'
                     stage_zh = '标准一买'
-                    reason = f'存在背驰证据（评分 {div_score:.2f}），且后续已形成向上一笔确认。'
+                    reason = f'按固定250根K线窗口识别为1买，且存在背驰证据（评分 {div_score:.2f}），归为标准一买。'
+                elif is_confirmed:
+                    stage = 'confirmed'
+                    stage_zh = '一买确认'
+                    reason = '按固定250根K线窗口识别为1买，已完成创新低底分型后的向上一笔，但不强制要求背驰。'
                 else:
-                    stage = 'candidate'
-                    stage_zh = '候选一买'
-                    reason = '已出现底部反转雏形，但背驰或后续确认仍偏弱，暂按候选一买处理。'
+                    stage = 'observe'
+                    stage_zh = '一买观察区'
+                    reason = '按固定250根K线窗口观察到1买雏形，但向上一笔尚未完全确认，暂列入一买观察区。'
             elif bp_type == '2B':
                 if is_confirmed:
                     stage = 'confirmed'
                     stage_zh = '二买确认'
-                    reason = '1买后的回踩未破关键结构，且已再次转强，按二买确认处理。'
+                    reason = '按固定250根K线窗口识别，1买后的回踩未破关键结构，且已再次转强，归为二买确认。'
                 else:
-                    stage = 'waiting_confirm'
-                    stage_zh = '二买待确认'
-                    reason = '已出现二买观察位，但回踩后的再次转强尚未完全确认。'
+                    stage = 'observe'
+                    stage_zh = '二买观察区'
+                    reason = '按固定250根K线窗口观察到二买结构雏形，回踩后的再次上行尚未完全确认。'
             elif bp_type == '3B':
                 if is_confirmed:
                     stage = 'confirmed'
                     stage_zh = '三买确认'
-                    reason = '已完成离开中枢后的回踩确认，且未有效回中枢。'
+                    reason = '按固定250根K线窗口识别，已完成突破中枢后的回踩确认，且未有效回到中枢。'
                 else:
-                    stage = 'waiting_confirm'
-                    stage_zh = '三买待确认'
-                    reason = '已出现三买观察位，但回踩后的延续上行尚需确认。'
+                    stage = 'observe'
+                    stage_zh = '三买观察区'
+                    reason = '按固定250根K线窗口观察到三买结构雏形，回踩后尚未完成向上一笔确认。'
             else:
                 stage = 'none'
                 stage_zh = '无状态'
@@ -909,6 +916,8 @@ class KlineServer:
 
             score = round(min(100, confidence * 100 + (12 if fractal_is_strong else 0) + (10 if div_score > 0 else 0))) if bp_type else 0
             return {
+                'window_policy': 'fixed_250',
+                'window_policy_zh': '固定250根K线主判定',
                 'mode': bp_type,
                 'mode_zh': buy_type_names.get(bp_type, bp_type),
                 'stage': stage,
@@ -917,6 +926,7 @@ class KlineServer:
                 'reason': reason,
                 'confidence': round(confidence * 100, 1),
                 'divergence_score': round(div_score, 2),
+                'buy1_standard': buy1_standard,
                 'last_buy_point': {
                     'type': bp_type,
                     'date': last_bp.get('date'),
@@ -926,8 +936,9 @@ class KlineServer:
                 },
                 'confirm_focus': {
                     'fractal_strength': _fractal_strength_name(last_fractal),
-                    'needs_up_bi': not is_confirmed if bp_type == '1B' else False,
+                    'needs_up_bi': not is_confirmed if bp_type in ['1B', '2B', '3B'] else False,
                     'needs_rebreak': not is_confirmed if bp_type in ['2B', '3B'] else False,
+                    'window': '250根K线',
                 }
             }
 

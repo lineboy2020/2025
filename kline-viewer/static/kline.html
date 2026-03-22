@@ -124,6 +124,31 @@
         .detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
         .detail-row .label { color: #6a6d78; }
         .detail-row .value { color: #d1d4dc; }
+
+        /* 决策页 V1 */
+        .decision-hero { background: linear-gradient(135deg, #1f2a44 0%, #162036 100%); border: 1px solid #2f4268; border-radius: 10px; padding: 12px; margin-top: 0; }
+        .decision-hero-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .decision-hero-title { font-size: 12px; color: #8da2c6; }
+        .decision-hero-value { font-size: 20px; font-weight: 700; color: #fff; }
+        .decision-chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .decision-chip { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .decision-chip.follow { background: rgba(239,83,80,.18); color: #ff8a80; }
+        .decision-chip.trial { background: rgba(41,98,255,.18); color: #8ab4ff; }
+        .decision-chip.observe { background: rgba(255,152,0,.18); color: #ffcc80; }
+        .decision-chip.forbidden { background: rgba(38,166,154,.18); color: #80cbc4; }
+        .decision-key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+        .decision-key-card { background: #252a3a; border-radius: 8px; padding: 10px; }
+        .decision-key-label { font-size: 11px; color: #6a6d78; margin-bottom: 4px; }
+        .decision-key-value { font-size: 15px; font-weight: 700; color: #d1d4dc; }
+        .decision-key-value.trigger { color: #8ab4ff; }
+        .decision-key-value.invalid { color: #26a69a; }
+        .decision-key-value.target { color: #ef5350; }
+        .v1-hidden { display: none !important; }
+        details.v1-details { margin-top: 8px; background: #252a3a; border-radius: 8px; padding: 10px 12px; }
+        details.v1-details summary { cursor: pointer; color: #d1d4dc; font-size: 12px; font-weight: 600; list-style: none; }
+        details.v1-details summary::-webkit-details-marker { display: none; }
+        details.v1-details summary::after { content: '展开'; float: right; color: #868993; font-weight: 400; }
+        details.v1-details[open] summary::after { content: '收起'; }
     </style>
 </head>
 <body>
@@ -157,68 +182,78 @@
                 <div id="loading" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 加载中...</div>
             </div>
             <div class="state-panel" id="state-panel">
-                <!-- 趋势结构分析 -->
-                <div class="panel-section" id="trend-analysis-section">
-                    <div class="panel-title"><i class="fa-solid fa-chart-line"></i> 趋势结构分析</div>
+                <!-- 交易结论 -->
+                <div class="panel-section" id="decision-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-compass"></i> 交易结论</div>
+                    <div id="decision-analysis-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 关键价位 -->
+                <div class="panel-section" id="current-state-section">
+                    <div class="panel-title"><i class="fa-solid fa-bullseye"></i> 关键价位</div>
+                    <div id="current-state-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 多周期结论 -->
+                <div class="panel-section" id="multitimeframe-section">
+                    <div class="panel-title"><i class="fa-solid fa-layer-group"></i> 多周期结论</div>
+                    <div id="multitimeframe-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 操作建议 / 结构说明 -->
+                <div class="panel-section" id="v1-action-section">
+                    <div class="panel-title"><i class="fa-solid fa-list-check"></i> 操作建议</div>
+                    <div id="v1-action-content">
+                        <div class="state-info">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 次级信息（V1先隐藏） -->
+                <div class="panel-section v1-hidden" id="trend-analysis-section">
+                    <div class="panel-title"><i class="fa-solid fa-chart-line"></i> 当前交易结构</div>
                     <div id="trend-analysis-content">
                         <div class="state-info">加载中...</div>
                     </div>
                 </div>
                 
-                <!-- 笔分析 -->
-                <div class="panel-section" id="bi-analysis-section">
+                <div class="panel-section v1-hidden" id="bi-analysis-section">
                     <div class="panel-title"><i class="fa-solid fa-pen"></i> 笔分析 <span id="bi-count" style="color:#2962ff;">(0)</span></div>
                     <div id="bi-analysis-content">
                         <div class="state-info">加载中...</div>
                     </div>
                 </div>
                 
-                <!-- 中枢分析 -->
-                <div class="panel-section" id="zhongshu-analysis-section">
+                <div class="panel-section v1-hidden" id="zhongshu-analysis-section">
                     <div class="panel-title"><i class="fa-solid fa-layer-group"></i> 中枢分析 <span id="zs-count" style="color:#fff;">(0)</span></div>
                     <div id="zhongshu-analysis-content">
                         <div class="state-info">加载中...</div>
                     </div>
                 </div>
                 
-                <!-- 分型统计 -->
-                <div class="panel-section" id="fractal-analysis-section">
+                <div class="panel-section v1-hidden" id="fractal-analysis-section">
                     <div class="panel-title"><i class="fa-solid fa-shapes"></i> 分型统计</div>
                     <div id="fractal-analysis-content">
                         <div class="state-info">加载中...</div>
                     </div>
                 </div>
                 
-                <!-- 当前状态 -->
-                <div class="panel-section" id="current-state-section">
-                    <div class="panel-title"><i class="fa-solid fa-bullseye"></i> 当前买点状态</div>
-                    <div id="current-state-content">
-                        <div class="state-info">加载中...</div>
-                    </div>
-                </div>
-
-                <!-- 交易决策分析 -->
-                <div class="panel-section" id="decision-analysis-section">
-                    <div class="panel-title"><i class="fa-solid fa-compass"></i> 交易决策分析</div>
-                    <div id="decision-analysis-content">
-                        <div class="state-info">加载中...</div>
-                    </div>
-                </div>
-                
-                <!-- 买点列表 -->
-                <div class="panel-section">
+                <div class="panel-section v1-hidden">
                     <div class="panel-title"><i class="fa-solid fa-arrow-trend-up"></i> 历史买点 <span id="buy-count" style="color:#00ff00;">(0)</span></div>
                     <div class="point-list" id="buy-point-list"></div>
                 </div>
                 
-                <!-- 卖点列表 -->
-                <div class="panel-section">
+                <div class="panel-section v1-hidden">
                     <div class="panel-title"><i class="fa-solid fa-arrow-trend-down"></i> 历史卖点 <span id="sell-count" style="color:#9b59b6;">(0)</span></div>
                     <div class="point-list" id="sell-point-list"></div>
                 </div>
                 
-                <!-- 选中详情 -->
-                <div class="panel-section" id="selected-detail-section" style="display: none;">
+                <div class="panel-section v1-hidden" id="selected-detail-section" style="display: none;">
                     <div class="panel-title"><i class="fa-solid fa-info-circle"></i> 选中详情</div>
                     <div id="selected-detail-content"></div>
                 </div>
@@ -253,6 +288,7 @@
         let cachedZhongshu = [];
         let cachedCurrentState = null;
         let cachedDecisionAnalysis = null;
+        let cachedMultitimeframeSummary = null;
         let cachedCapitalFlow = [];  // 资金流向数据
         
         let selectedPoint = null;
@@ -340,6 +376,7 @@
                 cachedZhongshu = json.zhongshu || [];
                 cachedCurrentState = json.current_state;
                 cachedDecisionAnalysis = json.decision_analysis || null;
+                cachedMultitimeframeSummary = json.multitimeframe_summary || null;
 
                 // 设置 K 线数据
                 const candles = [];
@@ -361,6 +398,7 @@
                 updateZhongshuAnalysis();
                 updateFractalAnalysis();
                 updateStatePanel();
+                updateMultitimeframeSummary();
                 updateDecisionAnalysis();
                 updatePointLists();
 
@@ -686,94 +724,95 @@
         // ==================== 右侧面板更新 ====================
         function updateStatePanel() {
             const container = document.getElementById('current-state-content');
-            
-            if (!cachedCurrentState) {
-                container.innerHTML = '<div class="state-info">暂无状态数据</div>';
+            const d = cachedDecisionAnalysis || {};
+            const state = cachedCurrentState || {};
+
+            if (!cachedDecisionAnalysis && !cachedCurrentState) {
+                container.innerHTML = '<div class="state-info">暂无关键价位数据</div>';
                 return;
             }
 
-            const state = cachedCurrentState;
-            const stateNames = { '1B': '一买形成区', '2B': '二买形成区', '3B': '三买形成区', 'waiting': '等待回调', 'none': '无买点信号' };
-            const stateClass = `state-${state.current_state}`;
-            const confidencePct = Math.round((state.confidence || 0) * 100);
+            const triggerPrice = d.trigger_price ?? state.trigger_price ?? '-';
+            const invalidationPrice = d.invalidation_price ?? state.stop_loss ?? '-';
+            const targetPrice = d.target_price ?? state.target_price ?? '-';
 
-            let html = `
-                <div style="text-align: center; margin-bottom: 10px;">
-                    <span class="state-badge ${stateClass}">
-                        <i class="fa-solid fa-bullseye"></i>
-                        ${stateNames[state.current_state] || state.current_state}
-                    </span>
-                </div>
-                <div class="state-info">
-                    <div><span class="label">置信度：</span><span class="value">${confidencePct}%</span></div>
-                    <div class="confidence-bar"><div class="confidence-fill" style="width: ${confidencePct}%"></div></div>
+            container.innerHTML = `
+                <div class="decision-key-grid" style="margin-top:0;">
+                    <div class="decision-key-card">
+                        <div class="decision-key-label">触发位</div>
+                        <div class="decision-key-value trigger">${triggerPrice}</div>
+                    </div>
+                    <div class="decision-key-card">
+                        <div class="decision-key-label">失效位</div>
+                        <div class="decision-key-value invalid">${invalidationPrice}</div>
+                    </div>
+                    <div class="decision-key-card">
+                        <div class="decision-key-label">目标位</div>
+                        <div class="decision-key-value target">${targetPrice}</div>
+                    </div>
                 </div>
             `;
+        }
 
-            if (state.trigger_price || state.stop_loss || state.target_price) {
-                html += `
-                    <div class="trade-suggestion">
-                        <div class="row"><span class="label">建议入场</span><span class="price">${state.trigger_price ? state.trigger_price.toFixed(2) : '-'}</span></div>
-                        <div class="row"><span class="label">止损位</span><span class="down">${state.stop_loss ? state.stop_loss.toFixed(2) : '-'}</span></div>
-                        <div class="row"><span class="label">目标位</span><span class="up">${state.target_price ? state.target_price.toFixed(2) : '-'}</span></div>
-                    </div>
-                `;
+        function updateMultitimeframeSummary() {
+            const container = document.getElementById('multitimeframe-content');
+
+            const d = cachedDecisionAnalysis || {};
+            const mt = cachedMultitimeframeSummary || {};
+            if ((!mt || !mt.available) && !d.multitimeframe_trade_summary) {
+                container.innerHTML = '<div class="state-info">暂无多周期结论</div>';
+                return;
             }
 
-            if (state.description) {
-                html += `<div class="description-box">${state.description}</div>`;
-            }
-
-            container.innerHTML = html;
+            const summary = d.multitimeframe_trade_summary || [mt.monthly?.summary, mt.weekly?.summary, mt.daily?.summary].filter(Boolean).join('；');
+            container.innerHTML = `
+                <div class="description-box" style="margin-top:0;">${summary || '暂无多周期总判断'}</div>
+                <div class="state-info" style="margin-top:8px;">主判定窗口：<span class="value">${mt.window_policy_zh || d.buy_mode_analysis?.window_policy_zh || '固定250根K线主判定'}</span></div>
+            `;
         }
 
         function updateDecisionAnalysis() {
             const container = document.getElementById('decision-analysis-content');
+            const actionContainer = document.getElementById('v1-action-content');
 
             if (!cachedDecisionAnalysis || !cachedDecisionAnalysis.available) {
-                container.innerHTML = '<div class="state-info">暂无决策分析数据</div>';
+                container.innerHTML = '<div class="state-info">暂无交易结论数据</div>';
+                if (actionContainer) actionContainer.innerHTML = '<div class="state-info">暂无操作建议</div>';
                 return;
             }
 
             const d = cachedDecisionAnalysis;
-            const hs = d.history_stats || {};
+            const permissionClass = d.permission_level || 'observe';
 
             container.innerHTML = `
-                <div class="analysis-box" style="margin-top:0;">
-                    <div class="analysis-row"><span class="label">趋势结构</span><span class="value highlight">${d.trend_structure || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">强弱评级</span><span class="value">${d.strength || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">交易权限</span><span class="value ${d.trade_permission === 'buy_allowed' ? 'up' : d.trade_permission === 'buy_forbidden' ? 'down' : 'warning'}">${d.trade_permission_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">当前信号</span><span class="value">${d.setup_type_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">最近分型</span><span class="value">${d.last_fractal_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">仓位建议</span><span class="value">${d.position_advice_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">风险级别</span><span class="value ${d.risk_level === '高' ? 'down' : d.risk_level === '中高' ? 'warning' : ''}">${d.risk_level || '-'}</span></div>
-                </div>
-                <div class="analysis-box">
-                    <div class="analysis-row"><span class="label">123买模式</span><span class="value highlight">${d.buy_mode_analysis?.mode_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">模式状态</span><span class="value">${d.buy_mode_analysis?.stage_zh || '-'}</span></div>
-                    <div class="analysis-row"><span class="label">模式评分</span><span class="value">${d.buy_mode_analysis?.score != null ? d.buy_mode_analysis.score + '分' : '-'}</span></div>
-                    <div class="analysis-row"><span class="label">确认重点</span><span class="value">${d.buy_mode_analysis?.confirm_focus?.fractal_strength || '-'}</span></div>
-                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${d.buy_mode_analysis?.reason || '暂无明确123买模式分析。'}</div>
-                </div>
-                <div class="trade-suggestion">
-                    <div class="row"><span class="label">最优买点</span><span class="value">${d.best_entry_zone || '-'}</span></div>
-                    <div class="row"><span class="label">次优买点</span><span class="value">${d.secondary_entry_zone || '-'}</span></div>
-                    <div class="row"><span class="label">高风险区域</span><span class="value warning">${d.high_risk_zone || '-'}</span></div>
-                    <div class="row"><span class="label">失效位</span><span class="down">${d.invalidation_level ?? '-'}</span></div>
-                    <div class="row"><span class="label">目标位1</span><span class="up">${d.target_zone_1 ?? '-'}</span></div>
-                    <div class="row"><span class="label">目标位2</span><span class="up">${d.target_zone_2 ?? '-'}</span></div>
-                </div>
-                <div class="description-box">${d.action_summary || '-'}</div>
-                <div class="analysis-box">
-                    <div class="analysis-row"><span class="label">历史样本数</span><span class="value">${hs.available && hs.sample_size != null ? hs.sample_size : '待统计'}</span></div>
-                    <div class="analysis-row"><span class="label">次日胜率</span><span class="value">${hs.available && hs.win_rate_1d != null ? hs.win_rate_1d + '%' : '待统计'}</span></div>
-                    <div class="analysis-row"><span class="label">3日胜率</span><span class="value">${hs.available && hs.win_rate_3d != null ? hs.win_rate_3d + '%' : '待统计'}</span></div>
-                    <div class="analysis-row"><span class="label">次日平均收益</span><span class="value">${hs.available && hs.avg_return_1d != null ? hs.avg_return_1d + '%' : '待统计'}</span></div>
-                    <div class="analysis-row"><span class="label">3日平均收益</span><span class="value">${hs.available && hs.avg_return_3d != null ? hs.avg_return_3d + '%' : '待统计'}</span></div>
-                    <div class="analysis-row"><span class="label">3日最大回撤</span><span class="value">${hs.available && hs.max_drawdown_3d != null ? hs.max_drawdown_3d + '%' : '待统计'}</span></div>
-                    <div style="font-size:11px;color:#868993;line-height:1.5;margin-top:6px;">${hs.note || '当前仅展示真实结构/决策分析。'}</div>
+                <div class="decision-hero">
+                    <div class="decision-hero-main">
+                        <div>
+                            <div class="decision-hero-title">交易权限</div>
+                            <div class="decision-hero-value">${d.permission_level_zh || '-'}</div>
+                        </div>
+                        <div class="decision-chip ${permissionClass}">${d.position_advice_zh || '-'}</div>
+                    </div>
+                    <div class="decision-chip-row">
+                        <div class="decision-chip ${permissionClass}">当前信号：${d.setup_type_zh || '-'}</div>
+                        <div class="decision-chip ${permissionClass}">结构阶段：${d.structure_stage || '-'}</div>
+                    </div>
                 </div>
             `;
+
+            if (actionContainer) {
+                actionContainer.innerHTML = `
+                    <div class="description-box" style="margin-top:0;">${d.action_summary || '暂无操作建议'}</div>
+                    <details class="v1-details">
+                        <summary>结构说明</summary>
+                        <div class="analysis-box" style="margin-top:10px;">
+                            <div class="analysis-row"><span class="label">当前阶段</span><span class="value highlight">${d.structure_stage || '-'}</span></div>
+                            <div class="analysis-row"><span class="label">升级条件</span><span class="value">${d.upgrade_condition || '-'}</span></div>
+                            <div class="analysis-row"><span class="label">失效条件</span><span class="value warning">${d.invalidation_condition || '-'}</span></div>
+                        </div>
+                    </details>
+                `;
+            }
         }
 
         function updatePointLists() {
@@ -836,8 +875,8 @@
             
             const typeNames = { '1B': '一买', '2B': '二买', '3B': '三买', '1S': '一卖', '2S': '二卖', '3S': '三卖' };
             const stageText = point.type === '1B'
-                ? (point.divergence_score > 0 && point.is_confirmed ? '标准一买' : '候选一买')
-                : (point.type === '2B' ? (point.is_confirmed ? '二买确认' : '二买待确认') : (point.type === '3B' ? (point.is_confirmed ? '三买确认' : '三买待确认') : (point.is_confirmed ? '已确认' : '待确认')));
+                ? (point.is_confirmed ? (point.divergence_score > 0 ? '标准一买' : '一买确认') : '一买观察区')
+                : (point.type === '2B' ? (point.is_confirmed ? '二买确认' : '二买观察区') : (point.type === '3B' ? (point.is_confirmed ? '三买确认' : '三买观察区') : (point.is_confirmed ? '已确认' : '观察区')));
             
             detailContent.innerHTML = `
                 <div class="selected-detail">
