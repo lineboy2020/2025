@@ -101,6 +101,60 @@ def ensure_skill_config_available():
         pass
 
 
+
+def sync_limit_up_parquet_to_duckdb():
+    parquet_path = WORKSPACE_ROOT / 'data' / 'db' / 'limit_up.parquet'
+    duckdb_path = WORKSPACE_ROOT / 'data' / 'db' / 'limit_up.duckdb'
+    if not parquet_path.exists():
+        raise RuntimeError(f'limit_up.parquet 不存在: {parquet_path}')
+
+    con = duckdb.connect(str(duckdb_path))
+    try:
+        exists = con.execute("SELECT COUNT(*) FROM information_schema.tables WHERE table_name='limit_up'").fetchone()[0] > 0
+        if exists:
+            schema = con.execute("PRAGMA table_info('limit_up')").fetchall()
+            cols = [(r[1], r[2]) for r in schema]
+            select_parts = []
+            for name, typ in cols:
+                if name == 'trade_date':
+                    select_parts.append(f"CAST(trade_date AS VARCHAR) AS "{name}"")
+                elif name in ['first_limit_time']:
+                    select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"")
+                else:
+                    select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"" if name in [c[0] for c in cols] else f"NULL AS "{name}"")
+            col_names = [c[0] for c in cols]
+            src_cols = con.execute(f"DESCRIBE SELECT * FROM read_parquet('{str(parquet_path)}')").fetchall()
+            src_names = {r[0] for r in src_cols}
+            select_parts = []
+            for name, typ in cols:
+                if name in src_names:
+                    if name == 'trade_date':
+                        select_parts.append(f"CAST(trade_date AS VARCHAR) AS "{name}"")
+                    else:
+                        select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"")
+                else:
+                    select_parts.append(f"CAST(NULL AS {typ}) AS "{name}"")
+            select_sql = ', '.join(select_parts)
+            con.execute('BEGIN TRANSACTION')
+            con.execute('DELETE FROM limit_up')
+            con.execute(f"INSERT INTO limit_up SELECT {select_sql} FROM read_parquet('{str(parquet_path)}')")
+            con.execute('COMMIT')
+        else:
+            con.execute(f"CREATE TABLE limit_up AS SELECT * FROM read_parquet('{str(parquet_path)}')")
+
+        summary = con.execute("""
+            SELECT MIN(trade_date), MAX(trade_date), COUNT(*), COUNT(DISTINCT trade_date)
+            FROM limit_up
+        """).fetchone()
+        return {
+            'min_trade_date': str(summary[0]) if summary[0] is not None else None,
+            'max_trade_date': str(summary[1]) if summary[1] is not None else None,
+            'rows': int(summary[2]),
+            'days': int(summary[3]),
+        }
+    finally:
+        con.close()
+
 # ==============================================================================
 # 主类
 # ==============================================================================
