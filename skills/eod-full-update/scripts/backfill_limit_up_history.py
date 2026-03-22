@@ -19,7 +19,7 @@ import duckdb
 import sys
 
 WORKSPACE = Path('/root/.openclaw/workspace')
-SNAPSHOT_DIR = WORKSPACE / 'skills' / 'data' / 'snapshots' / 'limit_up'
+SNAPSHOT_DIR = WORKSPACE / 'data' / 'snapshots' / 'limit_up'
 PARQUET_PATH = WORKSPACE / 'data' / 'db' / 'limit_up.parquet'
 DUCKDB_PATH = WORKSPACE / 'data' / 'db' / 'limit_up.duckdb'
 
@@ -50,8 +50,8 @@ def collect_range(start_date: str, end_date: str, force: bool = False):
             day += timedelta(days=1)
             continue
         try:
-            res = collector.collect_day(datetime.combine(day, datetime.min.time()), force=force)
-            if res.get('status') == 'success':
+            res = collector.collect_single_date(datetime.combine(day, datetime.min.time()))
+            if isinstance(res, dict) and res.get('status') == 'success':
                 ok += 1
         except Exception as e:
             print(f'[WARN] {day} collect failed: {e}')
