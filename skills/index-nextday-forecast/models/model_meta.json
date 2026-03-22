@@ -1,0 +1,29 @@
+{
+  "train_time": "2026-03-22T12:59:45.935913",
+  "version": "1.0.0",
+  "sample_count": 291,
+  "accuracy": 1.0,
+  "target_positive_ratio": 0.0,
+  "feature_count": 22,
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 59.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 59.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 59.0
+    }
+  }
+}
