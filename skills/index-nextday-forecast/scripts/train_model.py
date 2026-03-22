@@ -46,7 +46,14 @@ def load_feature_frame():
         zh['sh_change_pct'] = pd.to_numeric(zh['changeRatio'], errors='coerce')
     if 'high' in zh.columns and 'low' in zh.columns and 'preClose' in zh.columns:
         zh['sh_amplitude'] = (pd.to_numeric(zh['high'], errors='coerce') - pd.to_numeric(zh['low'], errors='coerce')) / pd.to_numeric(zh['preClose'], errors='coerce').replace(0, np.nan) * 100
-    keep = ['tradeDate'] + [c for c in ['sh_change_pct','sh_amplitude'] if c in zh.columns]
+    # 直接从 zhishu 原始库构造真实标签与特征，避免 emotion_features 内派生字段失真
+    if 'changeRatio' in zh.columns:
+        zh['sh_change_pct_real'] = pd.to_numeric(zh['changeRatio'], errors='coerce')
+    elif 'sh_change_pct' in zh.columns:
+        zh['sh_change_pct_real'] = pd.to_numeric(zh['sh_change_pct'], errors='coerce')
+    else:
+        zh['sh_change_pct_real'] = np.nan
+    keep = ['tradeDate'] + [c for c in ['sh_change_pct','sh_amplitude','sh_change_pct_real'] if c in zh.columns]
     zh = zh[keep]
 
     df = emo.merge(zh, on='tradeDate', how='left')
@@ -54,7 +61,11 @@ def load_feature_frame():
         if c not in df.columns:
             df[c] = 0
     df = df.sort_values('tradeDate').reset_index(drop=True)
-    df['next_sh_change_pct'] = df['sh_change_pct'].shift(-1)
+    # 标签直接使用真实指数涨跌幅
+    if 'sh_change_pct_real' in df.columns:
+        df['next_sh_change_pct'] = df['sh_change_pct_real'].shift(-1)
+    else:
+        df['next_sh_change_pct'] = df['sh_change_pct'].shift(-1)
     df['target_up'] = (df['next_sh_change_pct'] > 0).astype(int)
     df = df.iloc[:-1].copy()
     return df

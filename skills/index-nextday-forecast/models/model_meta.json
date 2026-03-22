@@ -1,31 +1,37 @@
 {
-  "train_time": "2026-03-22T13:02:07.927934",
+  "train_time": "2026-03-22T13:11:44.748454",
   "version": "2.0.0",
   "sample_count": 291,
   "train_count": 232,
   "test_count": 59,
   "split_method": "time_based_80_20",
-  "accuracy": 1.0,
-  "target_positive_ratio": 0.0,
+  "accuracy": 0.9830508474576272,
+  "target_positive_ratio": 0.003436426116838488,
   "feature_count": 22,
   "classification_report": {
     "0": {
-      "precision": 1.0,
+      "precision": 0.9830508474576272,
       "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 59.0
+      "f1-score": 0.9914529914529915,
+      "support": 58.0
     },
-    "accuracy": 1.0,
+    "1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 1.0
+    },
+    "accuracy": 0.9830508474576272,
     "macro avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
+      "precision": 0.4915254237288136,
+      "recall": 0.5,
+      "f1-score": 0.49572649572649574,
       "support": 59.0
     },
     "weighted avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
+      "precision": 0.9663889686871588,
+      "recall": 0.9830508474576272,
+      "f1-score": 0.9746487034622628,
       "support": 59.0
     }
   },
@@ -109,10 +115,10 @@
     },
     {
       "date": "2026-03-09",
-      "actual_up": 0,
+      "actual_up": 1,
       "pred_up": 0,
       "up_probability": 9.999997701015673e-07,
-      "hit": 1
+      "hit": 0
     },
     {
       "date": "2026-03-10",
