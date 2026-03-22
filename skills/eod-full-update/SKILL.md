@@ -1,26 +1,25 @@
 ---
 name: eod-full-update
 description: 盘后数据全量更新技能。一键更新所有A股盘后数据，包括市场情绪、指数行情、日K线、涨停数据、龙虎榜、情绪特征等。
-metadata:
-  emoji: 🔄
-  requires:
-    packages: ["pandas", "duckdb", "pyarrow", "requests"]
 ---
 
 # 盘后数据全量更新技能 (EOD Full Update)
 
 ## 概述
 
-本技能提供一键式盘后数据全量更新功能，自动按顺序更新以下数据：
+本技能是当前生产环境的**主盘后更新入口**。实际定时任务调用 `scripts/run_eod_with_kline_guard.py`，由守护脚本负责停/启 K 线服务、执行更新、校验结果，再恢复服务。
+
+本技能自动按顺序更新以下数据：
 
 | 序号 | 数据类型 | 目标文件 | 说明 |
 |------|---------|---------|------|
 | 1 | 市场情绪 | `qingxu.parquet` | 涨跌家数、涨停跌停数 |
 | 2 | 指数行情 | `zhishu.parquet` | 上证指数、深证成指、创业板指 |
 | 3 | 日K线数据 | `kline_eod.duckdb` | 全市场股票日线数据 |
-| 4 | 涨停数据 | `limit_up.parquet` | 涨停股票明细及连板信息 |
+| 4 | 涨停数据 | `limit_up.parquet` + `limit_up.duckdb` | 先更新 parquet，再同步回 DuckDB |
 | 5 | 龙虎榜数据 | `longhubang.parquet` | 龙虎榜成交明细 |
 | 6 | 情绪特征 | `emotion_features.parquet` | 市场周期判断特征数据 |
+| 7 | 资金流回写 | `kline_eod.duckdb.capital_flow` | 优先由 `archive/zijin` 分区数据回写 |
 
 ## 安装
 
@@ -34,17 +33,17 @@ metadata:
 
 ```bash
 # 更新当天数据
-cd ~/.openclaw/workspace/skills/eod-full-update
-python scripts/eod_full_update.py
+cd /root/.openclaw/workspace/skills/eod-full-update
+python3 scripts/run_eod_with_kline_guard.py
 
 # 更新指定日期数据
-python scripts/eod_full_update.py --date 2026-03-07
+python3 scripts/run_eod_with_kline_guard.py --date 2026-03-07
 
 # 仅更新部分数据
-python scripts/eod_full_update.py --skip emotion_features
+python3 scripts/eod_full_update.py --skip emotion_features
 
 # 显示帮助
-python scripts/eod_full_update.py --help
+python3 scripts/run_eod_with_kline_guard.py --help
 ```
 
 ### Python 调用
@@ -145,8 +144,10 @@ openclaw cron run eod-full-update-daily
 
 1. 同花顺SDK同一时间只能登录一个账户
 2. 建议盘后 15:30 后执行更新
-3. 首次运行可能需要较长时间下载历史数据
+3. 生产环境优先跑 `run_eod_with_kline_guard.py`，不要直接只跑 `eod_full_update.py`
 4. 数据文件默认保存在 `data/db/` 目录
 5. 大批量 `kline_eod` 日线更新默认强制走 SDK，不跟随 HTTP Token 自动切换
-6. `emotion_features` 默认从 `limit_up.parquet` 读取涨停特征，避免 parquet/duckdb 源不一致
-7. `kline_eod` 写库前会做覆盖率校验，避免下载不完整时误覆盖当天数据
+6. `limit_up` 先落地 `parquet`，再同步回 `limit_up.duckdb`，避免双轨不一致
+7. `capital_flow` 优先从 `data/archive/zijin` 分区数据回写；问财直查仅作为降级路径
+8. `emotion_features` 默认从 `limit_up.parquet` 读取涨停特征，避免 parquet/duckdb 源不一致
+9. `kline_eod` 写库前会做覆盖率校验，避免下载不完整时误覆盖当天数据
