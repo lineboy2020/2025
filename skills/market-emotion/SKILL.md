@@ -280,7 +280,7 @@ python scripts/main.py --today
 | 源文件 | 目标位置 | 说明 |
 |--------|----------|------|
 | `data/index/emotion_features.parquet` | `market-emotion/data/index/` | 特征数据 |
-| `models/emotion_cycle_xgb.pkl` | `market-emotion/models/` | XGBoost模型 |
+| `models/emotion_cycle_xgb_v3.pkl`（默认） | `market-emotion/models/` | XGBoost模型 |
 
 ### 输出数据
 
@@ -335,7 +335,7 @@ python scripts/full_update.py --skip-fetch
    - 技能直接调用主项目数据库（`data/db/`），无需在技能内维护重复数据
    - 需要先运行主更新链路 `skills/eod-full-update/scripts/run_eod_with_kline_guard.py`，确保主数据库为最新
    - 确保主项目的 `qingxu.parquet`、`zhishu.parquet`、`limit_up.duckdb` 为最新
-2. **模型依赖**：需要已训练好的XGBoost模型 (`models/emotion_cycle_xgb.pkl`)
+2. **模型依赖**：需要已训练好的XGBoost模型 (`models/emotion_cycle_xgb_v3.pkl`（默认）)
 3. **交易时间**：建议在收盘后（15:30之后）运行，确保数据完整
 4. **投资风险**：本工具仅供参考，不构成投资建议，投资有风险，入市需谨慎
 

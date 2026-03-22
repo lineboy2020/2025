@@ -1,0 +1,60 @@
+{
+  "train_time": "2026-03-22T12:40:39.591758",
+  "version": "3.0.0-rebuilt",
+  "feature_count": 40,
+  "sample_count": 292,
+  "label_distribution": {
+    "0": 33,
+    "1": 68,
+    "2": 70,
+    "3": 25,
+    "4": 96
+  },
+  "accuracy": 0.864406779661017,
+  "label_source": "rule_engine_distillation_v3",
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 7.0
+    },
+    "1": {
+      "precision": 1.0,
+      "recall": 0.5714285714285714,
+      "f1-score": 0.7272727272727273,
+      "support": 14.0
+    },
+    "2": {
+      "precision": 0.9285714285714286,
+      "recall": 0.9285714285714286,
+      "f1-score": 0.9285714285714286,
+      "support": 14.0
+    },
+    "3": {
+      "precision": 0.8,
+      "recall": 0.8,
+      "f1-score": 0.8,
+      "support": 5.0
+    },
+    "4": {
+      "precision": 0.76,
+      "recall": 1.0,
+      "f1-score": 0.8636363636363636,
+      "support": 19.0
+    },
+    "accuracy": 0.864406779661017,
+    "macro avg": {
+      "precision": 0.8977142857142857,
+      "recall": 0.86,
+      "f1-score": 0.8638961038961039,
+      "support": 59.0
+    },
+    "weighted avg": {
+      "precision": 0.8888135593220339,
+      "recall": 0.864406779661017,
+      "f1-score": 0.8574730354391372,
+      "support": 59.0
+    }
+  }
+}

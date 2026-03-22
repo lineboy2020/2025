@@ -1,0 +1,55 @@
+{
+  "skill": {
+    "name": "market-emotion",
+    "version": "3.0.0",
+    "description": "A股市场情绪周期判断与操作建议系统 - 支持即时通知和盘中监测",
+    "debug": false
+  },
+  "data": {
+    "feature_file": "data/index/emotion_features.parquet",
+    "output_dir": "data/output",
+    "comment": "数据源统一使用主项目数据库 data/db/"
+  },
+  "model": {
+    "model_path": "models/emotion_cycle_xgb_v3.pkl",
+    "meta_path": "models/emotion_cycle_xgb_meta.json"
+  },
+  "data_sources": {
+    "qingxu": "data/db/qingxu.parquet",
+    "zhishu": "data/db/zhishu.parquet",
+    "limit_up": "data/db/limit_up.duckdb",
+    "comment": "直接调用主项目数据库，不再维护重复文件"
+  },
+  "emotion_cycles": {
+    "0": {
+      "name": "冰点期",
+      "emoji": "🥶",
+      "position": "空仓或10%",
+      "strategy": "低吸首板"
+    },
+    "1": {
+      "name": "启动期",
+      "emoji": "🌱",
+      "position": "30%~50%",
+      "strategy": "1进2打板"
+    },
+    "2": {
+      "name": "发酵期",
+      "emoji": "🔥",
+      "position": "50%~70%",
+      "strategy": "持龙加仓"
+    },
+    "3": {
+      "name": "高潮期",
+      "emoji": "🚀",
+      "position": "70%~100%",
+      "strategy": "重仓龙头"
+    },
+    "4": {
+      "name": "退潮期",
+      "emoji": "📉",
+      "position": "<10%",
+      "strategy": "空仓避险"
+    }
+  }
+}
