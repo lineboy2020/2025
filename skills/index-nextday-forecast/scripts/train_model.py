@@ -8,7 +8,6 @@ from datetime import datetime
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report
 from xgboost import XGBClassifier
@@ -66,7 +65,11 @@ def main():
     X = df[FEATURE_COLUMNS].fillna(0)
     y = df['target_up']
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # 使用时间切分，避免随机切分带来的信息穿越与过拟合假象
+    split_idx = int(len(df) * 0.8)
+    X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+    y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+    test_dates = df['tradeDate'].iloc[split_idx:].dt.strftime('%Y-%m-%d').tolist()
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
@@ -92,18 +95,33 @@ def main():
             'scaler': scaler,
             'feature_columns': FEATURE_COLUMNS,
             'train_time': datetime.now().isoformat(),
-            'version': '1.0.0',
+            'version': '2.0.0',
             'target': 'next_day_up_down',
         }, f)
 
+    backtest_rows = []
+    test_prob = model.predict_proba(X_test_scaled)[:, 1]
+    for dt, yt, yp, pp in zip(test_dates, y_test.tolist(), pred.tolist(), test_prob.tolist()):
+        backtest_rows.append({
+            'date': dt,
+            'actual_up': int(yt),
+            'pred_up': int(yp),
+            'up_probability': float(pp),
+            'hit': int(yt == yp),
+        })
+
     meta = {
         'train_time': datetime.now().isoformat(),
-        'version': '1.0.0',
+        'version': '2.0.0',
         'sample_count': int(len(df)),
+        'train_count': int(len(X_train)),
+        'test_count': int(len(X_test)),
+        'split_method': 'time_based_80_20',
         'accuracy': float(acc),
         'target_positive_ratio': float(y.mean()),
         'feature_count': len(FEATURE_COLUMNS),
         'classification_report': report,
+        'recent_backtest': backtest_rows[-20:],
     }
     (MODELS / 'model_meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding='utf-8')
     (MODELS / 'feature_columns.json').write_text(json.dumps(FEATURE_COLUMNS, ensure_ascii=False, indent=2), encoding='utf-8')
