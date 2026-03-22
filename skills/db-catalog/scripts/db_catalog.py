@@ -3,12 +3,34 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from datetime import date, datetime
 import duckdb
 import pyarrow.parquet as pq
 
 
 def fmt(v):
     return 'NULL' if v is None else str(v)
+
+
+def parse_dt(v):
+    if v is None or v == 'NULL':
+        return None
+    if isinstance(v, datetime):
+        return v.date()
+    if isinstance(v, date):
+        return v
+    s = str(v)[:10]
+    try:
+        return datetime.strptime(s, '%Y-%m-%d').date()
+    except Exception:
+        return None
+
+
+def stale_days(max_value):
+    d = parse_dt(max_value)
+    if not d:
+        return None
+    return (date.today() - d).days
 
 
 def detect_usage(col_names):
@@ -50,10 +72,13 @@ def inspect_duckdb(db_path: Path):
                 'high_null': rate >= 80,
             })
         table['date_checks'] = []
+        table['latest_date'] = None
         for dc in [c for c in col_names if 'date' in c.lower() or 'time' in c.lower()][:6]:
             try:
                 mn, mx = con.execute(f'SELECT MIN("{dc}"), MAX("{dc}") FROM "{t}"').fetchone()
                 table['date_checks'].append({'column': dc, 'min': fmt(mn), 'max': fmt(mx)})
+                if table['latest_date'] is None and mx is not None:
+                    table['latest_date'] = fmt(mx)
             except Exception as e:
                 table['date_checks'].append({'column': dc, 'error': str(e)})
         table['duplicate_checks'] = []
@@ -82,7 +107,8 @@ def inspect_parquet(pq_path: Path):
         'column_count': len(cols),
         'usage': detect_usage(cols),
         'columns': [],
-        'date_checks': []
+        'date_checks': [],
+        'latest_date': None
     }
     for n in cols:
         nulls = con.execute(f"SELECT SUM(CASE WHEN \"{n}\" IS NULL THEN 1 ELSE 0 END) FROM read_parquet('{qpath}')").fetchone()[0] or 0
@@ -92,6 +118,8 @@ def inspect_parquet(pq_path: Path):
         try:
             mn, mx = con.execute(f"SELECT MIN(\"{dc}\"), MAX(\"{dc}\") FROM read_parquet('{qpath}')").fetchone()
             item['date_checks'].append({'column': dc, 'min': fmt(mn), 'max': fmt(mx)})
+            if item['latest_date'] is None and mx is not None:
+                item['latest_date'] = fmt(mx)
         except Exception as e:
             item['date_checks'].append({'column': dc, 'error': str(e)})
     con.close()
@@ -103,6 +131,66 @@ def render_markdown(report):
     lines.append('# data/db 数据库清单与体检报告')
     lines.append('')
     lines.append(f"- 扫描目录: `{report['db_dir']}`")
+    lines.append('')
+    lines.append('## 总览摘要')
+    lines.append('')
+    lines.append('| 对象 | 类型 | 用途 | 最新日期 | 距今(天) | 状态 |')
+    lines.append('|---|---|---|---|---:|---|')
+    for item in report['items']:
+        if item['type'] == 'duckdb':
+            for t in item['tables']:
+                latest = t.get('latest_date')
+                gap = stale_days(latest)
+                status = '正常'
+                if gap is None:
+                    status = '无日期字段'
+                elif gap >= report['stale_threshold_days']:
+                    status = '⚠️ 疑似断更'
+                lines.append(f"| {item['file']}.{t['name']} | duckdb-table | {t['usage']} | {latest or '-'} | {gap if gap is not None else '-'} | {status} |")
+        else:
+            latest = item.get('latest_date')
+            gap = stale_days(latest)
+            status = '正常'
+            if gap is None:
+                status = '无日期字段'
+            elif gap >= report['stale_threshold_days']:
+                status = '⚠️ 疑似断更'
+            lines.append(f"| {item['file']} | parquet | {item['usage']} | {latest or '-'} | {gap if gap is not None else '-'} | {status} |")
+    lines.append('')
+
+    lines.append('## 异常摘要')
+    lines.append('')
+    found_issue = False
+    for item in report['items']:
+        if item['type'] == 'duckdb':
+            for t in item['tables']:
+                latest = t.get('latest_date')
+                gap = stale_days(latest)
+                if gap is not None and gap >= report['stale_threshold_days']:
+                    found_issue = True
+                    lines.append(f"- ⚠️ `{item['file']}.{t['name']}` 最新日期 `{latest}`，距今 `{gap}` 天，疑似断更")
+                high_null = [c for c in t['columns'] if c['high_null']]
+                if high_null:
+                    found_issue = True
+                    cols = ', '.join([f"{c['name']}({c['null_rate']:.1f}%)" for c in high_null[:8]])
+                    lines.append(f"- ⚠️ `{item['file']}.{t['name']}` 高空值字段: {cols}")
+                for d in t.get('duplicate_checks', []):
+                    if d['duplicate_groups'] > 0:
+                        found_issue = True
+                        lines.append(f"- ⚠️ `{item['file']}.{t['name']}` 业务键 `{' + '.join(d['key'])}` 存在重复组 `{d['duplicate_groups']}`")
+        else:
+            latest = item.get('latest_date')
+            gap = stale_days(latest)
+            if gap is not None and gap >= report['stale_threshold_days']:
+                found_issue = True
+                lines.append(f"- ⚠️ `{item['file']}` 最新日期 `{latest}`，距今 `{gap}` 天，疑似断更")
+            high_null = [c for c in item['columns'] if c['high_null']]
+            if high_null:
+                found_issue = True
+                cols = ', '.join([f"{c['name']}({c['null_rate']:.1f}%)" for c in high_null[:8]])
+                lines.append(f"- ⚠️ `{item['file']}` 高空值字段: {cols}")
+    if not found_issue:
+        lines.append('- 未发现明显断更、高空值或业务键重复异常')
     lines.append('')
     lines.append('## 文件清单')
     lines.append('')
@@ -182,7 +270,7 @@ def main():
         elif p.suffix == '.parquet':
             items.append(inspect_parquet(p))
 
-    report = {'db_dir': str(db_dir), 'items': items}
+    report = {'db_dir': str(db_dir), 'items': items, 'stale_threshold_days': 3}
     out_json.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     out_md.write_text(render_markdown(report), encoding='utf-8')
     print(str(out_md))
