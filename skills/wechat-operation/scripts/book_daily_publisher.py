@@ -95,7 +95,7 @@ def publish_book_article(hot_topic: str = "", dry_run: bool = False) -> dict:
         print(f"   结合热点: {hot_topic}")
     
     article = generate_daily_article(hot_topic=hot_topic)
-    article['core_points'] = article.get('book_info', {}).get('core_concepts', [])[:5]
+    article['core_points'] = []
     article['image_plan'] = build_article_image_plan(article)
     if article.get('image_plan'):
         try:
@@ -134,7 +134,7 @@ def publish_book_article(hot_topic: str = "", dry_run: bool = False) -> dict:
         'content': article['content'],
         'author': '财商读书会'
     }
-    formatted = formatter.format_for_wechat(article_data, theme="default")
+    formatted = formatter.format_for_wechat(article_data, theme="pro")
     formatted_content = formatted.get('content', article['content'])
     
     # 3. 发布或保存
@@ -206,7 +206,7 @@ def publish_book_article(hot_topic: str = "", dry_run: bool = False) -> dict:
                 'author': '财商读书会',
                 'core_points': article.get('core_points', [])
             }
-            formatted = formatter.format_for_wechat(article_data, theme="default")
+            formatted = formatter.format_for_wechat(article_data, theme="pro")
             formatted_content = formatted.get('content', article['content'])
             
             # 发布文章到草稿箱
