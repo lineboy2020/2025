@@ -114,26 +114,18 @@ def sync_limit_up_parquet_to_duckdb():
         if exists:
             schema = con.execute("PRAGMA table_info('limit_up')").fetchall()
             cols = [(r[1], r[2]) for r in schema]
-            select_parts = []
-            for name, typ in cols:
-                if name == 'trade_date':
-                    select_parts.append(f"CAST(trade_date AS VARCHAR) AS "{name}"")
-                elif name in ['first_limit_time']:
-                    select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"")
-                else:
-                    select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"" if name in [c[0] for c in cols] else f"NULL AS "{name}"")
-            col_names = [c[0] for c in cols]
             src_cols = con.execute(f"DESCRIBE SELECT * FROM read_parquet('{str(parquet_path)}')").fetchall()
             src_names = {r[0] for r in src_cols}
             select_parts = []
             for name, typ in cols:
+                qname = f'"{name}"'
                 if name in src_names:
                     if name == 'trade_date':
-                        select_parts.append(f"CAST(trade_date AS VARCHAR) AS "{name}"")
+                        select_parts.append(f"CAST(trade_date AS VARCHAR) AS {qname}")
                     else:
-                        select_parts.append(f"CAST("{name}" AS {typ}) AS "{name}"")
+                        select_parts.append(f"CAST({qname} AS {typ}) AS {qname}")
                 else:
-                    select_parts.append(f"CAST(NULL AS {typ}) AS "{name}"")
+                    select_parts.append(f"CAST(NULL AS {typ}) AS {qname}")
             select_sql = ', '.join(select_parts)
             con.execute('BEGIN TRANSACTION')
             con.execute('DELETE FROM limit_up')
@@ -405,9 +397,40 @@ class EODFullUpdater:
             conn.execute("DELETE FROM market_daily WHERE trade_date = ?", [date_obj])
             conn.execute("INSERT INTO market_daily SELECT * FROM market_daily_stage")
             result = conn.execute("SELECT COUNT(*) FROM market_daily WHERE trade_date = ?", [date_obj]).fetchone()[0]
+
+            capital_flow_info = None
+            try:
+                from update_duckdb_daily import update_capital_flow_from_zijin_archive, _normalize_capital_flow_df
+                archive_loaded = update_capital_flow_from_zijin_archive(conn, self.trade_date)
+                fallback_used = False
+                fallback_count = 0
+                if not archive_loaded:
+                    wc = self._wc_downloader().download_wc_data(f"{self.trade_date},主力净流入,A股")
+                    flow_df = _normalize_capital_flow_df(wc, self.trade_date)
+                    if flow_df is not None and not flow_df.empty:
+                        conn.execute("DELETE FROM capital_flow WHERE trade_date = ?", [date_obj])
+                        conn.register('flow_df', flow_df)
+                        conn.execute("INSERT INTO capital_flow SELECT * FROM flow_df")
+                        conn.unregister('flow_df')
+                        fallback_used = True
+                        fallback_count = len(flow_df)
+                flow_summary = conn.execute("SELECT MAX(trade_date), COUNT(*), COUNT(DISTINCT trade_date) FROM capital_flow").fetchone()
+                capital_flow_info = {
+                    'archive_loaded': archive_loaded,
+                    'fallback_used': fallback_used,
+                    'fallback_count': fallback_count,
+                    'max_trade_date': str(flow_summary[0]) if flow_summary and flow_summary[0] is not None else None,
+                    'row_count': int(flow_summary[1]) if flow_summary else 0,
+                    'trade_dates': int(flow_summary[2]) if flow_summary else 0,
+                }
+            except Exception as flow_err:
+                capital_flow_info = {'error': str(flow_err)}
+
             conn.close()
             self.log(f"✅ 更新完成: {result} 条数据")
-            self.results['kline_eod'] = {'success': True, 'count': result, 'coverage': coverage}
+            if capital_flow_info and capital_flow_info.get('max_trade_date'):
+                self.log(f"📌 capital_flow 最新日期: {capital_flow_info['max_trade_date']} | 行数 {capital_flow_info['row_count']:,}")
+            self.results['kline_eod'] = {'success': True, 'count': result, 'coverage': coverage, 'capital_flow': capital_flow_info}
         except Exception as e:
             self.log(f"❌ 更新失败: {e}")
             self.results['kline_eod'] = {'success': False, 'error': str(e)}
@@ -453,9 +476,16 @@ class EODFullUpdater:
 
                 merged = merged.drop_duplicates(subset=['trade_date', 'stock_code'], keep='last').sort_values(['trade_date', 'stock_code']).reset_index(drop=True)
                 merged.to_parquet(limit_up_path, index=False)
+                sync_summary = sync_limit_up_parquet_to_duckdb()
                 today_count = len(merged[merged['trade_date'].astype(str) == str(self.trade_date)])
                 self.log(f"✅ 更新完成: {today_count} 只涨停股票，字段数 {len(merged.columns)}")
-                self.results['limit_up'] = {'success': True, 'count': today_count, 'columns': list(merged.columns)}
+                self.log(f"✅ 已同步 limit_up.duckdb: 最新 {sync_summary.get('max_trade_date')}, 共 {sync_summary.get('row_count')} 行")
+                self.results['limit_up'] = {
+                    'success': True,
+                    'count': today_count,
+                    'columns': list(merged.columns),
+                    'duckdb_sync': sync_summary,
+                }
             finally:
                 try:
                     collector.logout()
