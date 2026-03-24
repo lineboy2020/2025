@@ -12,7 +12,15 @@ server.log
 
 # Python env / local state
 .env
+*.env
+*.pem
+*.key
 *.state.json
+*.pid
+
+# Secrets / local credentials
+**/.env
+**/*.env
 
 # Data / generated outputs
 data/
@@ -27,8 +35,15 @@ ObsidianTemplates/
 skills/**/__pycache__/
 skills/**/logs/
 skills/**/reports/
+skills/**/output/
+skills/**/generated_images/
 skills/.skills_store_lock.json
 skills/market-emotion/.intraday_emotion_state.json
+
+# Models / SDK / binary assets
+*.pkl
+*.so
+skills/**/sdk/
 
 # Archives / binaries
 *.zip
